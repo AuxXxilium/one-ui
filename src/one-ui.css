@@ -1,0 +1,326 @@
+/* One UI - A UI to rule them all.
+   Theme and design by Fulcrum, developed by AuxXxilium.
+
+   A Tailwind 4 preset. An app imports Tailwind first and this after it:
+
+     @import 'tailwindcss' source(none);
+     @source '.';
+     @import '../node_modules/one-ui/src/one-ui.css';
+
+   It does not import Tailwind itself, so each app keeps its own source() and
+   its own @source lines. The @source below registers the components in this
+   folder, so their classes are built without the app having to know where
+   they live. */
+@source '.';
+
+/* `dark:` follows the .dark class useTheme puts on <html>, not the system
+   setting, so the appearance menu decides. */
+@custom-variant dark (&:is(.dark *));
+
+/* Inline, so each utility carries rgb(var(--accent-600)) itself and follows
+   wherever theme.js sets the variables. */
+@theme inline {
+  /* `gray` is zinc: near-hueless, so it never fights the accent. Tailwind's
+     stock gray is a blue grey that shows in dark mode. */
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f4f4f5;
+  --color-gray-200: #e4e4e7;
+  --color-gray-300: #d4d4d8;
+  --color-gray-400: #a1a1aa;
+  --color-gray-500: #71717a;
+  --color-gray-600: #52525b;
+  --color-gray-700: #3f3f46;
+  --color-gray-800: #27272a;
+  --color-gray-900: #18181b;
+  --color-gray-950: #09090b;
+
+  /* Text on a solid accent surface: white, or near-black on the light presets.
+     Both spellings, text-on-accent and text-onaccent, work. */
+  --color-on-accent: rgb(var(--accent-on));
+  --color-onaccent: rgb(var(--accent-on));
+
+  /* The accent. Every app spells it as `blue-*`, so the blue scale is pointed
+     at the accent variables and every `bg-blue-600` follows the colour picker.
+     Tailwind builds classes at build time, so a colour chosen in the browser
+     could never have a class of its own. */
+  --color-blue-50: rgb(var(--accent-50));
+  --color-blue-100: rgb(var(--accent-100));
+  --color-blue-200: rgb(var(--accent-200));
+  --color-blue-300: rgb(var(--accent-300));
+  --color-blue-400: rgb(var(--accent-400));
+  --color-blue-500: rgb(var(--accent-500));
+  --color-blue-600: rgb(var(--accent-600));
+  --color-blue-700: rgb(var(--accent-700));
+  --color-blue-800: rgb(var(--accent-800));
+  --color-blue-900: rgb(var(--accent-900));
+  --color-blue-950: rgb(var(--accent-950));
+
+  /* `primary` and `accent` are the same scale, for code that would rather say
+     what it means than spell it as blue. */
+  --color-primary-50: rgb(var(--accent-50));
+  --color-primary-100: rgb(var(--accent-100));
+  --color-primary-200: rgb(var(--accent-200));
+  --color-primary-300: rgb(var(--accent-300));
+  --color-primary-400: rgb(var(--accent-400));
+  --color-primary-500: rgb(var(--accent-500));
+  --color-primary-600: rgb(var(--accent-600));
+  --color-primary-700: rgb(var(--accent-700));
+  --color-primary-800: rgb(var(--accent-800));
+  --color-primary-900: rgb(var(--accent-900));
+  --color-primary-950: rgb(var(--accent-950));
+}
+
+/* Tailwind 3's defaults, which the apps were written against: a bare `border`
+   in gray-200, a pointer over buttons, and placeholders in gray-400. */
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+  }
+}
+
+:root {
+  /* The default (Blue) preset as "R G B" triples, so the first paint is
+     already accented before theme.js runs. An app with another default
+     overrides these, or calls applyAccent before it renders. */
+  --accent-50: 239 246 255;
+  --accent-100: 219 234 254;
+  --accent-200: 191 219 254;
+  --accent-300: 147 197 253;
+  --accent-400: 96 165 250;
+  --accent-500: 59 130 246;
+  --accent-600: 37 99 235;
+  --accent-700: 29 78 216;
+  --accent-800: 30 64 175;
+  --accent-900: 30 58 138;
+  --accent-950: 23 37 84;
+  --accent-on: 255 255 255;
+
+  --color-bg: #f5f5f7;
+  --color-text: #27272a;
+  color-scheme: light;
+}
+
+.dark {
+  --color-bg: #131316;
+  --color-text: #f4f4f5;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+@layer components {
+  /* The ground behind the whole app: a near-white with two soft washes of the
+     accent in opposite corners, so the white cards have something to lift
+     off. Low alphas on purpose: this is a ground, not a colour. */
+  .app-wash {
+    background-color: #f5f5f7;
+    background-image:
+      radial-gradient(60rem 40rem at 0% 0%, rgb(var(--accent-100) / 0.45), transparent 60%),
+      radial-gradient(50rem 40rem at 100% 100%, rgb(var(--accent-200) / 0.22), transparent 60%);
+  }
+
+  .dark .app-wash {
+    background-color: #131316;
+    background-image:
+      radial-gradient(60rem 40rem at 0% 0%, rgb(var(--accent-500) / 0.16), transparent 60%),
+      radial-gradient(50rem 40rem at 100% 100%, rgb(var(--accent-600) / 0.10), transparent 60%);
+  }
+
+  /* Every box on the page - card, dialog, menu, the sidebar's current page -
+     is a panel. Solid by default: white on the wash, zinc-800 in the dark. */
+  .panel {
+    background-color: #fff;
+  }
+
+  .dark .panel {
+    background-color: #27272a;
+  }
+
+  /* Glass: the same boxes, a little see-through, with a soft blur behind and a
+     faint edge so they still read as boxes. All of them, with the .glass class
+     on <html> (applyGlass, or Surface: Glass in the appearance menu), or one
+     at a time with .panel-glass (<Card glass>). */
+  .glass .panel,
+  .panel.panel-glass {
+    background-color: rgb(255 255 255 / 0.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    backdrop-filter: blur(16px) saturate(1.5);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.6), 0 1px 3px rgb(0 0 0 / 0.06);
+  }
+
+  .dark.glass .panel,
+  .dark .panel.panel-glass {
+    background-color: rgb(39 39 42 / 0.45);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07), 0 8px 24px rgb(0 0 0 / 0.25);
+  }
+
+  /* Glass needs something to see through, so under it the washes are
+     stronger. Still from the accent, so they follow the colour picker. */
+  .glass .app-wash {
+    background-image:
+      radial-gradient(50rem 36rem at 0% 0%, rgb(var(--accent-300) / 0.6), transparent 60%),
+      radial-gradient(44rem 36rem at 100% 100%, rgb(var(--accent-400) / 0.45), transparent 60%),
+      radial-gradient(36rem 28rem at 65% 35%, rgb(var(--accent-200) / 0.5), transparent 60%);
+  }
+
+  .dark.glass .app-wash {
+    background-image:
+      radial-gradient(50rem 36rem at 0% 0%, rgb(var(--accent-500) / 0.30), transparent 60%),
+      radial-gradient(44rem 36rem at 100% 100%, rgb(var(--accent-600) / 0.22), transparent 60%),
+      radial-gradient(30rem 24rem at 70% 20%, rgb(var(--accent-400) / 0.12), transparent 60%);
+  }
+
+  /* Data tables: a quiet sentence-case header, roomy rows and a tint under
+     the row the pointer is on. Add the class to the <table>. A table wider
+     than a phone scrolls sideways within its card, not the page. */
+  :where(div, section):has(> table.data-table) {
+    overflow-x: auto;
+  }
+
+  .data-table th {
+    white-space: nowrap;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: left;
+    color: rgb(113 113 122);
+    border-bottom: 1px solid rgb(228 228 231);
+  }
+
+  .data-table td {
+    padding: 0.625rem 0.75rem;
+  }
+
+  .data-table th:first-child,
+  .data-table td:first-child {
+    padding-left: 0.25rem;
+  }
+
+  .data-table th:last-child,
+  .data-table td:last-child {
+    padding-right: 0.25rem;
+  }
+
+  .data-table tbody tr {
+    transition: background-color 120ms;
+  }
+
+  .data-table tbody tr:hover {
+    background-color: rgb(250 250 250);
+  }
+
+  .dark .data-table th {
+    color: rgb(161 161 170);
+    border-bottom-color: rgb(63 63 70);
+  }
+
+  .dark .data-table tbody tr:hover {
+    background-color: rgb(255 255 255 / 0.03);
+  }
+
+  /* A form field, for markup that would rather use a class than the
+     inputClass string from styles.js. Same look. */
+  .field {
+    width: 100%;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.875rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: rgb(228 228 231 / 0.6);
+    color: #18181b;
+  }
+
+  .field:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgb(var(--accent-500));
+  }
+
+  .dark .field {
+    background: #3f3f46;
+    color: #fff;
+  }
+}
+
+/* Checkboxes and radios in the accent. Tailwind's text-blue-600 on a native
+   checkbox colours nothing; accent-color is what the browser paints. */
+input[type='checkbox'],
+input[type='radio'],
+input[type='range'] {
+  accent-color: rgb(var(--accent-600));
+}
+
+.dark input[type='checkbox'],
+.dark input[type='radio'],
+.dark input[type='range'] {
+  accent-color: rgb(var(--accent-500));
+}
+
+/* Thin scrollbars everywhere, in zinc, with no arrow buttons. */
+*,
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d8 transparent;
+}
+
+.dark,
+.dark *,
+.dark .scrollbar-thin {
+  scrollbar-color: #52525b transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1aa;
+}
+
+.dark::-webkit-scrollbar-thumb,
+.dark ::-webkit-scrollbar-thumb {
+  background: #52525b;
+}
+
+.dark::-webkit-scrollbar-thumb:hover,
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #71717a;
+}

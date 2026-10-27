@@ -1,0 +1,41 @@
+{
+  "name": "one-ui",
+  "version": "1.0.0",
+  "description": "A UI to rule them all: a Tailwind preset, Preact components and a plain-CSS version.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./theme": "./src/theme.js",
+    "./styles": "./src/styles.js",
+    "./icons": "./src/icons.jsx",
+    "./one-ui.css": "./src/one-ui.css",
+    "./plain/one-ui-plain.css": "./plain/one-ui-plain.css",
+    "./plain/one-ui-plain.js": "./plain/one-ui-plain.js"
+  },
+  "scripts": {
+    "build": "node demo/build.mjs",
+    "render": "node demo/build.mjs && node demo/render.mjs"
+  },
+  "author": "AuxXxilium",
+  "contributors": [
+    "Fulcrum (https://github.com/FulcrumCode)"
+  ],
+  "homepage": "https://auxxxilium.github.io/one-ui/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AuxXxilium/one-ui.git"
+  },
+  "license": "GPL-3.0",
+  "peerDependencies": {
+    "preact": "^10.19.0",
+    "tailwindcss": "^4.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.0",
+    "esbuild": "^0.24.0",
+    "preact": "^10.24.0",
+    "puppeteer-core": "^23.11.1",
+    "tailwindcss": "^4.1.0"
+  }
+}

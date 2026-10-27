@@ -1,0 +1,501 @@
+/* One UI, plain CSS. Developed by AuxXxilium, theme and design by Fulcrum -
+   both to be credited wherever One UI is used (see NOTICE).
+
+   For a page with no build step: ordinary HTML and a small set of named
+   classes, no Tailwind. The values are the Tailwind preset's (src/one-ui.css)
+   - zinc for surfaces and text, the accent from the same --accent-*
+   variables, the same radii and wash - so a plain page and an app look alike.
+   one-ui-plain.js applies the stored mode, colour and surface.
+
+   Element styles are wrapped in :where() so they carry no specificity: any
+   rule a page writes for its own elements wins without !important. */
+
+:root {
+    /* The default (Blue) preset, so the first frame is right before
+       one-ui-plain.js has run. */
+    --accent-50: 239 246 255;
+    --accent-100: 219 234 254;
+    --accent-200: 191 219 254;
+    --accent-300: 147 197 253;
+    --accent-400: 96 165 250;
+    --accent-500: 59 130 246;
+    --accent-600: 37 99 235;
+    --accent-700: 29 78 216;
+    --accent-800: 30 64 175;
+    --accent-900: 30 58 138;
+    --accent-950: 23 37 84;
+    --accent-on: 255 255 255;
+
+    --oui-bg: #f5f5f7;
+    --oui-surface: #ffffff;
+    --oui-surface-2: #fafafa;             /* zinc-50: a table row under the pointer */
+    --oui-band: rgb(228 228 231 / 0.5);   /* a card's title band, never the accent */
+    --oui-sunken: rgb(244 244 245 / 0.6); /* tiles, code, inner panels */
+    --oui-border: rgb(228 228 231 / 0.8);
+    --oui-field: rgb(228 228 231 / 0.6);
+    --oui-text: #18181b;
+    --oui-text-2: #52525b;
+    --oui-muted: #71717a;
+    --oui-accent-text: rgb(var(--accent-700));
+    --oui-wash-1: rgb(var(--accent-100) / 0.45);
+    --oui-wash-2: rgb(var(--accent-200) / 0.22);
+    --oui-panel-edge: none;
+    --oui-blur: none;
+
+    color-scheme: light;
+}
+
+.dark {
+    --oui-bg: #131316;
+    --oui-surface: #27272a;
+    --oui-surface-2: rgb(255 255 255 / 0.03);
+    --oui-band: rgb(24 24 27 / 0.3);
+    --oui-sunken: rgb(24 24 27 / 0.4);
+    --oui-border: rgb(63 63 70 / 0.7);
+    --oui-field: #3f3f46;
+    --oui-text: #fafafa;
+    --oui-text-2: #d4d4d8;
+    --oui-muted: #a1a1aa;
+    --oui-accent-text: rgb(var(--accent-300));
+    --oui-wash-1: rgb(var(--accent-500) / 0.16);
+    --oui-wash-2: rgb(var(--accent-600) / 0.10);
+
+    color-scheme: dark;
+}
+
+/* Glass: every card a little see-through over a stronger wash. On <html>
+   for the whole page, or .oui-glass on one card. */
+.glass {
+    --oui-surface: rgb(255 255 255 / 0.5);
+    --oui-panel-edge: inset 0 0 0 1px rgb(255 255 255 / 0.55), 0 1px 3px rgb(0 0 0 / 0.06);
+    --oui-blur: blur(16px) saturate(1.4);
+    --oui-wash-1: rgb(var(--accent-300) / 0.55);
+    --oui-wash-2: rgb(var(--accent-400) / 0.35);
+}
+
+.dark.glass {
+    --oui-surface: rgb(39 39 42 / 0.45);
+    --oui-panel-edge: inset 0 0 0 1px rgb(255 255 255 / 0.07), 0 8px 24px rgb(0 0 0 / 0.25);
+    --oui-wash-1: rgb(var(--accent-500) / 0.30);
+    --oui-wash-2: rgb(var(--accent-600) / 0.22);
+}
+
+/* ---------------------------------------------------------------- base */
+
+:where(html) {
+    -webkit-text-size-adjust: 100%;
+}
+
+:where(body) {
+    margin: 0;
+    min-height: 100vh;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    font: 14px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--oui-text);
+    background-color: var(--oui-bg);
+    background-image:
+        radial-gradient(60rem 40rem at 0% 0%, var(--oui-wash-1), transparent 60%),
+        radial-gradient(50rem 40rem at 100% 100%, var(--oui-wash-2), transparent 60%);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+}
+
+:where(*, ::before, ::after) { box-sizing: border-box; }
+
+:where(h1, h2, h3) {
+    margin: 0 0 0.5rem;
+    line-height: 1.25;
+    color: var(--oui-text);
+}
+:where(h1) { font-size: 1.25rem; font-weight: 700; }
+:where(h2) { font-size: 1rem; font-weight: 600; }
+:where(h3) { font-size: 0.875rem; font-weight: 600; }
+
+:where(p) { margin: 0 0 0.75rem; color: var(--oui-text-2); }
+
+:where(a) { color: var(--oui-accent-text); text-decoration: none; }
+:where(a:hover) { text-decoration: underline; }
+
+:where(code, pre, kbd) {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.8125rem;
+}
+:where(code) {
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.375rem;
+    background: var(--oui-sunken);
+}
+:where(pre) {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background: var(--oui-sunken);
+    overflow: auto;
+    max-height: 24rem;
+}
+:where(pre code) { padding: 0; background: none; }
+
+:where(hr) { border: 0; border-top: 1px solid var(--oui-border); margin: 1rem 0; }
+
+/* Form fields: a light fill, no outline, the ring marks the one being typed
+   in. The same height as a button, so a field and its button line up. */
+:where(input:not([type=checkbox]):not([type=radio]):not([type=range]), select, textarea) {
+    width: 100%;
+    padding: 0.25rem 0.625rem;
+    font: inherit;
+    font-size: 0.875rem;
+    color: var(--oui-text);
+    background: var(--oui-field);
+    border: 0;
+    border-radius: 0.5rem;
+}
+:where(input, select, textarea):focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgb(var(--accent-500));
+}
+:where(input[type=checkbox], input[type=radio], input[type=range]) { accent-color: rgb(var(--accent-600)); }
+
+:where(label) {
+    display: block;
+    margin-bottom: 0.125rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--oui-text-2);
+}
+
+/* ---------------------------------------------------------------- layout */
+
+/* The page column. Optional: a page that wants the full width skips it. */
+.oui-page {
+    max-width: 64rem;
+    margin: 0 auto;
+}
+
+/* The page heading: the icon on an accent tile, the name and a line about
+   it, and the page's buttons on the right. */
+.oui-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.oui-header-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: 0;
+}
+.oui-header h1 { margin: 0; }
+.oui-header p { margin: 0.125rem 0 0; font-size: 0.875rem; }
+.oui-header-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.oui-icon-tile {
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.375rem;
+    line-height: 1;
+    color: rgb(var(--accent-on));
+    background: linear-gradient(to bottom right, rgb(var(--accent-400)), rgb(var(--accent-600)));
+    box-shadow: 0 4px 6px -1px rgb(var(--accent-500) / 0.2);
+}
+.oui-icon-tile svg { width: 1.375rem; height: 1.375rem; }
+
+/* A vertical stack of cards with the app's spacing between them. */
+.oui-stack > * + * { margin-top: 1rem; }
+
+/* Equal columns that fold to one on a narrow window. */
+.oui-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+/* A row of things side by side, wrapping when there is no room. */
+.oui-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* ---------------------------------------------------------------- cards */
+
+.oui-card {
+    background: var(--oui-surface);
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: var(--oui-panel-edge);
+    -webkit-backdrop-filter: var(--oui-blur);
+    backdrop-filter: var(--oui-blur);
+}
+.oui-card.oui-glass {
+    background: rgb(255 255 255 / 0.5);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.55), 0 1px 3px rgb(0 0 0 / 0.06);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
+}
+.dark .oui-card.oui-glass {
+    background: rgb(39 39 42 / 0.45);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07), 0 8px 24px rgb(0 0 0 / 0.25);
+}
+/* The tinted title band: its fill marks it, with no line under it. */
+.oui-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--oui-band);
+}
+.oui-card-header h2,
+.oui-card-header h3 { margin: 0; font-size: 0.875rem; font-weight: 600; }
+.oui-card-header p { margin: 0.125rem 0 0; font-size: 0.75rem; color: var(--oui-muted); }
+.oui-card-body { padding: 1rem; }
+.oui-card-body > :last-child { margin-bottom: 0; }
+
+/* One fact in a box: a small label above the value. */
+.oui-tile {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    background: var(--oui-sunken);
+}
+.oui-tile-label { font-size: 0.75rem; color: var(--oui-muted); }
+.oui-tile-value {
+    font-size: 0.875rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: var(--oui-text);
+    overflow-wrap: anywhere;
+}
+
+/* A bigger figure in a box: a headline number. */
+.oui-stat {
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.75rem;
+    background: var(--oui-sunken);
+}
+.oui-stat-label { font-size: 0.75rem; font-weight: 600; color: var(--oui-text-2); }
+.oui-stat-value {
+    margin-top: 0.125rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--oui-text);
+}
+
+/* ---------------------------------------------------------------- buttons
+   No button has a border: each is a fill that steps darker on hover. */
+
+.oui-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.5;
+    border: 0;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 150ms, box-shadow 150ms;
+    color: var(--oui-text);
+    background: rgb(228 228 231 / 0.7);
+}
+.dark .oui-btn { background: #3f3f46; }
+.oui-btn:hover { background: #e4e4e7; text-decoration: none; }
+.dark .oui-btn:hover { background: #52525b; }
+.oui-btn:focus-visible { outline: 2px solid rgb(var(--accent-500)); outline-offset: 2px; }
+.oui-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.oui-btn-primary,
+.dark .oui-btn-primary {
+    color: rgb(var(--accent-on));
+    background: rgb(var(--accent-600));
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+}
+.oui-btn-primary:hover,
+.dark .oui-btn-primary:hover { background: rgb(var(--accent-700)); }
+
+.oui-btn-outline { color: rgb(var(--accent-700)); background: rgb(var(--accent-100)); }
+.oui-btn-outline:hover { background: rgb(var(--accent-200) / 0.7); }
+.dark .oui-btn-outline { color: rgb(var(--accent-400)); background: rgb(var(--accent-900) / 0.3); }
+.dark .oui-btn-outline:hover { background: rgb(var(--accent-900) / 0.5); }
+
+.oui-btn-success,
+.dark .oui-btn-success { color: #fff; background: #16a34a; }
+.oui-btn-success:hover,
+.dark .oui-btn-success:hover { background: #15803d; }
+
+.oui-btn-danger,
+.dark .oui-btn-danger { color: #fff; background: #dc2626; box-shadow: none; }
+.oui-btn-danger:hover,
+.dark .oui-btn-danger:hover { background: #b91c1c; }
+
+/* ---------------------------------------------------------------- choosers */
+
+/* A row of views, the chosen one lifted out as a white pill. Buttons inside,
+   with aria-selected="true" on the chosen one. */
+.oui-segmented {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.125rem;
+    padding: 0.25rem;
+    border-radius: 0.75rem;
+    background: rgb(228 228 231 / 0.6);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.05);
+}
+.dark .oui-segmented { background: rgb(39 39 42 / 0.8); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.05); }
+.oui-segmented > button {
+    padding: 0.25rem 0.75rem;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--oui-text-2);
+    background: none;
+    border: 0;
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+.oui-segmented > button:hover { color: var(--oui-text); }
+.oui-segmented > button[aria-selected="true"] {
+    color: var(--oui-text);
+    background: #fff;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+}
+.dark .oui-segmented > button[aria-selected="true"] { background: #3f3f46; }
+
+/* An on/off switch: a checkbox with the class. */
+.oui-switch {
+    appearance: none;
+    -webkit-appearance: none;
+    position: relative;
+    width: 2.75rem;
+    height: 1.5rem;
+    margin: 0;
+    border-radius: 9999px;
+    background: #d4d4d8;
+    cursor: pointer;
+    transition: background-color 200ms;
+    vertical-align: middle;
+}
+.dark .oui-switch { background: #52525b; }
+.oui-switch::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 9999px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+    transition: transform 200ms;
+}
+.oui-switch:checked,
+.dark .oui-switch:checked { background: rgb(var(--accent-600)); }
+.oui-switch:checked::after { transform: translateX(1.25rem); }
+.oui-switch:focus-visible { outline: 2px solid rgb(var(--accent-500)); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------- badges
+   Status colours stay fixed whatever the accent: green is running and red is
+   failed under every theme. info follows the accent. */
+
+.oui-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #27272a;
+    background: #f4f4f5;
+}
+.dark .oui-badge { color: #d4d4d8; background: #3f3f46; }
+.oui-badge-success { color: #166534; background: #dcfce7; }
+.oui-badge-warning { color: #854d0e; background: #fef9c3; }
+.oui-badge-error   { color: #991b1b; background: #fee2e2; }
+.oui-badge-info    { color: rgb(var(--accent-800)); background: rgb(var(--accent-100)); }
+.dark .oui-badge-success { color: #4ade80; background: rgb(20 83 45 / 0.3); }
+.dark .oui-badge-warning { color: #facc15; background: rgb(113 63 18 / 0.3); }
+.dark .oui-badge-error   { color: #f87171; background: rgb(127 29 29 / 0.3); }
+.dark .oui-badge-info    { color: rgb(var(--accent-400)); background: rgb(var(--accent-900) / 0.3); }
+
+/* A status dot, for a name that carries its state beside it. */
+.oui-dot { width: 0.5rem; height: 0.5rem; border-radius: 9999px; background: #a1a1aa; display: inline-block; }
+.oui-dot-success { background: #22c55e; }
+.oui-dot-warning { background: #f59e0b; }
+.oui-dot-error   { background: #ef4444; }
+
+/* ---------------------------------------------------------------- notices */
+
+.oui-notice {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    color: rgb(var(--accent-800));
+    background: rgb(var(--accent-50));
+}
+.dark .oui-notice { color: rgb(var(--accent-300)); background: rgb(var(--accent-900) / 0.2); }
+.oui-notice-success { color: #166534; background: #f0fdf4; }
+.oui-notice-warning { color: #92400e; background: #fffbeb; }
+.oui-notice-error   { color: #991b1b; background: #fef2f2; }
+.dark .oui-notice-success { color: #86efac; background: rgb(20 83 45 / 0.2); }
+.dark .oui-notice-warning { color: #fcd34d; background: rgb(120 53 15 / 0.2); }
+.dark .oui-notice-error   { color: #fca5a5; background: rgb(127 29 29 / 0.2); }
+
+/* A thin progress bar: the outer track, the inner fill with a width. */
+.oui-progress {
+    height: 0.375rem;
+    border-radius: 9999px;
+    background: #e4e4e7;
+    overflow: hidden;
+}
+.dark .oui-progress { background: #3f3f46; }
+.oui-progress > span {
+    display: block;
+    height: 100%;
+    border-radius: 9999px;
+    background: rgb(var(--accent-500));
+}
+
+/* ---------------------------------------------------------------- tables */
+
+.oui-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+.oui-table th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--oui-muted);
+    border-bottom: 1px solid var(--oui-border);
+}
+.oui-table td {
+    padding: 0.625rem 0.75rem;
+    color: var(--oui-text-2);
+    border-bottom: 1px solid var(--oui-border);
+}
+.oui-table tr:last-child td { border-bottom: 0; }
+.oui-table tbody tr:hover td { background: var(--oui-surface-2); }
+
+/* ---------------------------------------------------------------- text */
+
+.oui-muted { color: var(--oui-muted); }
+.oui-small { font-size: 0.75rem; }
+.oui-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.oui-credits { font-size: 0.75rem; color: var(--oui-muted); }

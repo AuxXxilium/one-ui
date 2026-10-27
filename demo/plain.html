@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One UI plain</title>
+    <link rel="stylesheet" href="one-ui-plain.css">
+    <script src="one-ui-plain.js"></script>
+</head>
+<body>
+<div class="oui-page oui-stack">
+
+    <header class="oui-header">
+        <div class="oui-header-title">
+            <span class="oui-icon-tile">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>
+            </span>
+            <div>
+                <h1>Orders</h1>
+                <p>One UI in plain HTML, with no build step</p>
+            </div>
+        </div>
+        <div class="oui-header-actions">
+            <button class="oui-btn" onclick="OneUI.setDark(!OneUI.dark)">Light / Dark</button>
+            <button class="oui-btn" onclick="OneUI.setGlass(!OneUI.glass)">Solid / Glass</button>
+            <button class="oui-btn oui-btn-primary" onclick="nextAccent()">Next colour</button>
+        </div>
+    </header>
+
+    <div class="oui-grid">
+        <div class="oui-stat"><div class="oui-stat-label">Orders today</div><div class="oui-stat-value" data-rand="20-180"></div></div>
+        <div class="oui-stat"><div class="oui-stat-label">Revenue (€)</div><div class="oui-stat-value" data-rand="1800-9400"></div></div>
+        <div class="oui-stat"><div class="oui-stat-label">New customers</div><div class="oui-stat-value" data-rand="3-60"></div></div>
+        <div class="oui-stat"><div class="oui-stat-label">Open questions</div><div class="oui-stat-value" data-rand="0-12"></div></div>
+    </div>
+
+    <section class="oui-card">
+        <div class="oui-card-header">
+            <div><h3>Latest orders</h3><p>Sample rows, new each time the page loads</p></div>
+            <div class="oui-segmented" role="tablist">
+                <button role="tab" aria-selected="true">All</button>
+                <button role="tab" aria-selected="false">Paid</button>
+                <button role="tab" aria-selected="false">Pending</button>
+            </div>
+        </div>
+        <div class="oui-card-body">
+            <table class="oui-table">
+                <thead><tr><th>Order</th><th>Customer</th><th>City</th><th>Total</th><th>Status</th></tr></thead>
+                <tbody id="rows"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="oui-grid">
+        <section class="oui-card">
+            <div class="oui-card-header"><h3>Settings</h3></div>
+            <div class="oui-card-body oui-stack">
+                <div>
+                    <label for="name">Shop name</label>
+                    <input id="name" value="Sample Shop">
+                </div>
+                <div class="oui-row" style="justify-content: space-between">
+                    <span>Email me about new orders</span>
+                    <input type="checkbox" class="oui-switch" checked aria-label="Email me about new orders">
+                </div>
+                <div>
+                    <div class="oui-row" style="justify-content: space-between"><span class="oui-small">Monthly goal</span><span class="oui-small oui-muted" id="pct"></span></div>
+                    <div class="oui-progress"><span id="bar"></span></div>
+                </div>
+                <div class="oui-row">
+                    <button class="oui-btn oui-btn-primary">Save</button>
+                    <button class="oui-btn oui-btn-outline">Preview</button>
+                    <button class="oui-btn oui-btn-danger">Reset</button>
+                </div>
+            </div>
+        </section>
+        <section class="oui-card">
+            <div class="oui-card-header"><h3>Messages</h3></div>
+            <div class="oui-card-body oui-stack">
+                <div class="oui-notice">A new theme for your shop is available.</div>
+                <div class="oui-notice oui-notice-success">Your changes were saved.</div>
+                <div class="oui-notice oui-notice-warning">Two orders are waiting for payment.</div>
+                <div class="oui-notice oui-notice-error">The payment service did not answer.</div>
+                <div class="oui-row">
+                    <span class="oui-badge oui-badge-success"><span class="oui-dot oui-dot-success"></span>Paid</span>
+                    <span class="oui-badge oui-badge-warning">Pending</span>
+                    <span class="oui-badge oui-badge-error">Refunded</span>
+                    <span class="oui-badge oui-badge-info">New</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <p class="oui-credits">
+        One UI by <a href="https://auxxxilium.tech">AuxXxilium</a> &middot;
+        theme and design by <a href="https://github.com/FulcrumCode">Fulcrum</a>
+    </p>
+</div>
+
+<script>
+    // Sample content, as the Preact demo has. ?seed= keeps it the same.
+    let s = Number(new URLSearchParams(location.search).get('seed')) || Math.floor(Math.random() * 1e6);
+    const rand = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+    const int = (a, b) => Math.floor(rand() * (b - a + 1)) + a;
+    const pick = (l) => l[Math.floor(rand() * l.length)];
+
+    document.querySelectorAll('[data-rand]').forEach((el) => {
+        const [a, b] = el.dataset.rand.split('-').map(Number);
+        el.textContent = int(a, b).toLocaleString('en');
+    });
+    const STATUS = [['success', 'Paid'], ['success', 'Paid'], ['warning', 'Pending'], ['error', 'Refunded']];
+    document.getElementById('rows').innerHTML = Array.from({ length: 6 }, () => {
+        const [tone, word] = pick(STATUS);
+        return `<tr><td class="oui-mono">ORD-${int(10000, 99999)}</td>
+            <td><b>${pick(['Mira Holt', 'Jonas Weber', 'Aiko Tanaka', 'Leo Duarte', 'Sara Lind', 'Priya Nair'])}</b></td>
+            <td>${pick(['Lisbon', 'Oslo', 'Kyoto', 'Toronto', 'Vienna', 'Melbourne'])}</td>
+            <td class="oui-mono">€${int(12, 480)}.${String(int(0, 99)).padStart(2, '0')}</td>
+            <td><span class="oui-badge oui-badge-${tone}">${word}</span></td></tr>`;
+    }).join('');
+    const p = int(20, 90);
+    document.getElementById('bar').style.width = p + '%';
+    document.getElementById('pct').textContent = p + '%';
+
+    function nextAccent() {
+        const ids = OneUI.presets.map((x) => x.id);
+        OneUI.setAccent(ids[(ids.indexOf(OneUI.accent) + 1) % ids.length]);
+    }
+    document.querySelectorAll('.oui-segmented button').forEach((b) => b.addEventListener('click', () => {
+        b.parentNode.querySelectorAll('button').forEach((x) => x.setAttribute('aria-selected', x === b));
+    }));
+</script>
+</body>
+</html>

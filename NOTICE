@@ -1,0 +1,22 @@
+One UI
+Copyright (c) AuxXxilium
+
+Developed by AuxXxilium   https://auxxxilium.tech
+Theme and design by Fulcrum   https://github.com/FulcrumCode
+
+
+CREDIT IS REQUIRED
+
+Any project, page or product that uses One UI - the whole of it or any part:
+the stylesheets, the components, the colour presets, the icons or the look
+recreated from them - must name BOTH:
+
+    AuxXxilium (development)
+    Fulcrum (theme and design)
+
+in a place its users can see, such as an About page, a footer, the sidebar or
+the README. A link to each is welcome. The <Credits /> component, the credit
+line AppShell shows at the foot of its sidebar, and the .oui-credits line in
+the plain version all meet this requirement.
+
+Removing or hiding the credit is not permitted.
