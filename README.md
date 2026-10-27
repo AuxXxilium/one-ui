@@ -4,9 +4,9 @@
 
 One UI gives every app the same cards, buttons, colours and dark mode, so moving between them feels like using one product.
 
-### ▶ [Open the live demo](https://auxxxilium.github.io/one-ui/)
+### ▶ [Open the live demo](https://auxxxilium.github.io/one-ui/demo/)
 
-The demo shows every element filled with random content. Use the sun/moon button in the top right to try light and dark, the five colours and the glass look. There is also a [plain HTML version](https://auxxxilium.github.io/one-ui/plain.html).
+The demo shows every element filled with made-up sample content. Use the sun/moon button in the top right to try light and dark, the five colours and the glass look. There is also a [plain HTML version](https://auxxxilium.github.io/one-ui/demo/plain.html).
 
 ![The overview page of the demo](docs/renders/overview-light.png)
 
@@ -498,9 +498,9 @@ src/                  The preset (Preact + Tailwind)
 plain/                The plain version
   one-ui-plain.css      the stylesheet
   one-ui-plain.js       the theme script (built from entry.js, don't edit it)
-demo/                 The demo with random content, and the scripts that build it
+demo/                 The live demo: index.html and plain.html, built demo.js and demo.css
+  src/                  the demo's sources, with its sample data
 docs/renders/         The pictures in this README
-.github/workflows/    Publishes the demo on GitHub Pages
 NOTICE                The credit requirement
 ```
 
@@ -510,13 +510,13 @@ NOTICE                The credit requirement
 
 ```bash
 npm install
-npm run build     # builds the demo into demo/dist; open demo/dist/index.html
+npm run build     # builds demo/demo.js and demo.css; open demo/index.html
 npm run render    # builds, then takes new pictures for docs/renders (needs Chrome or Edge)
 ```
 
 The demo's content is made up and different on every load. Add `?seed=7` to the address to get the same content every time; the pictures use seed 42. The address can also choose what is shown, e.g. `index.html?page=forms&dark=1&accent=green&glass=1`.
 
-**The live demo** at https://auxxxilium.github.io/one-ui/ updates by itself after each push to `main`. In the GitHub repository, *Settings → Pages → Source* has to be set to **GitHub Actions** once.
+**The live demo** at https://auxxxilium.github.io/one-ui/demo/ is the `demo/` folder exactly as it is in the repository: GitHub Pages serves the `main` branch, with this README as the start page. So after changing anything in `src/`, `plain/` or `demo/src/`, run `npm run build` and commit the rebuilt `demo/demo.js`, `demo/demo.css` and `plain/one-ui-plain.js` with your change.
 
 ---
 

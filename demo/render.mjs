@@ -1,4 +1,4 @@
-// Takes the screenshots in docs/renders from the built demo, with headless
+// Takes the screenshots in docs/renders from the demo in this folder, with headless
 // Chrome or Edge.
 //   npm run render      (builds first)
 //
@@ -26,7 +26,7 @@ if (!executablePath) {
 
 const OUT = 'docs/renders';
 mkdirSync(OUT, { recursive: true });
-const url = (file, query) => `${pathToFileURL(resolve('demo/dist', file)).href}?seed=42&${query}`;
+const url = (file, query) => `${pathToFileURL(resolve('demo', file)).href}?seed=42&${query}`;
 
 // name, file, query, options
 const SHOTS = [

@@ -1,14 +1,14 @@
-// Builds the plain-CSS theme script and the demo.
+// Builds the plain theme script and the demo.
 //   node demo/build.mjs    (npm run build)
 //
-// plain/one-ui-plain.js   from plain/entry.js and src/theme.js
-// demo/dist/              the demo: open demo/dist/index.html, or plain.html
+// plain/one-ui-plain.js     from plain/entry.js and src/theme.js
+// demo/demo.js, demo.css    the demo, from demo/src
+//
+// The built files are committed: GitHub Pages serves the repository as it
+// is, so the demo at /demo/ is exactly what is in this folder. Run this and
+// commit the result after changing anything in src/, plain/ or demo/src/.
 import * as esbuild from 'esbuild';
 import { spawn } from 'node:child_process';
-import { copyFileSync, mkdirSync, rmSync } from 'node:fs';
-
-rmSync('demo/dist', { recursive: true, force: true });
-mkdirSync('demo/dist', { recursive: true });
 
 // The plain theme script stays readable: pages outside this repository load
 // it as it is, and someone will open it to see what it does.
@@ -25,9 +25,9 @@ await esbuild.build({
 // Classic JSX with h. An app on the automatic runtime reads the same files,
 // since each imports h and Fragment.
 const demo = esbuild.build({
-  entryPoints: ['demo/main.jsx'],
+  entryPoints: ['demo/src/main.jsx'],
   bundle: true,
-  outfile: 'demo/dist/demo.js',
+  outfile: 'demo/demo.js',
   format: 'iife',
   jsx: 'transform',
   jsxFactory: 'h',
@@ -38,13 +38,8 @@ const demo = esbuild.build({
 });
 
 const css = new Promise((resolve, reject) => {
-  const p = spawn(process.execPath, ['node_modules/@tailwindcss/cli/dist/index.mjs', '-i', 'demo/demo.css', '-o', 'demo/dist/demo.css', '--minify'], { stdio: 'inherit' });
+  const p = spawn(process.execPath, ['node_modules/@tailwindcss/cli/dist/index.mjs', '-i', 'demo/src/demo.css', '-o', 'demo/demo.css', '--minify'], { stdio: 'inherit' });
   p.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`tailwind exited with ${code}`))));
 });
 
 await Promise.all([demo, css]);
-
-copyFileSync('demo/index.html', 'demo/dist/index.html');
-copyFileSync('demo/plain.html', 'demo/dist/plain.html');
-copyFileSync('plain/one-ui-plain.css', 'demo/dist/one-ui-plain.css');
-copyFileSync('plain/one-ui-plain.js', 'demo/dist/one-ui-plain.js');

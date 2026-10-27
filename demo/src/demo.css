@@ -1,0 +1,5 @@
+/* The demo's stylesheet: exactly what an app writes to use One UI. */
+@import 'tailwindcss' source(none);
+@source './main.jsx';
+@source './random.js';
+@import '../../src/one-ui.css';

@@ -4,7 +4,7 @@ import {
   AppShell, PageHeader, PageTabs, Card, TabbedCard, InfoTile, TILE, Button, StatusBadge, ToggleSwitch,
   Segmented, Modal, CopyField, Loading, Empty, Notice, ProgressBar, Credits, Icon, IconTile, ICONS,
   inputClass, labelClass, hintClass, useTheme, storeValue,
-} from '../src/index';
+} from '../../src/index';
 import * as R from './random';
 
 // A gallery of every One UI element, filled with made-up sample content: a
