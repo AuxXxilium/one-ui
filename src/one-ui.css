@@ -177,6 +177,26 @@ body {
     box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07), 0 8px 24px rgb(0 0 0 / 0.25);
   }
 
+  /* A menu floats over the page rather than sitting on it, so under glass it
+     is clearer than the boxes. At their fill, over a card that is already
+     light, it came out a flat near-white and read as solid. Less fill and a
+     lighter blur let what is underneath show through, softened. Add
+     .panel-menu beside .panel on a drop-down, a right-click menu or a
+     popover; its rows mark hover and dividers with a tint (bg-black/5,
+     dark:bg-white/10) rather than a grey of their own, which would put an
+     opaque bar back across the glass. */
+  .glass .panel.panel-menu,
+  .panel.panel-glass.panel-menu {
+    background-color: rgb(255 255 255 / 0.3);
+    -webkit-backdrop-filter: blur(12px) saturate(1.8);
+    backdrop-filter: blur(12px) saturate(1.8);
+  }
+
+  .dark.glass .panel.panel-menu,
+  .dark .panel.panel-glass.panel-menu {
+    background-color: rgb(39 39 42 / 0.3);
+  }
+
   /* Glass needs something to see through, so under it the washes are
      stronger. Still from the accent, so they follow the colour picker. */
   .glass .app-wash {

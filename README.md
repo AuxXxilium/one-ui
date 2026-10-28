@@ -146,6 +146,8 @@ const theme = useTheme({ defaultGlass: true });
 
 **Only one glass box:** `<Card glass>` makes just that card see-through, even when the rest of the app is solid.
 
+**Menus:** a box that floats over the page - a drop-down, a right-click menu, a popover - takes `panel panel-menu` instead of `panel`. Under glass it is clearer than the boxes around it, so it does not turn into a flat white sheet over a light card. Mark its hover rows and dividers with a tint (`bg-black/5 dark:bg-white/10`) rather than a grey, which would lay a solid bar across the glass. The appearance menu is built this way.
+
 ---
 
 ## App icons

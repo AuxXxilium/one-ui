@@ -11,7 +11,7 @@ const ModeButton = ({ active, onClick, icon, label }) => (
     className={`flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-[13px] transition-colors ${
       active
         ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
-        : 'bg-gray-100 text-gray-900 dark:bg-gray-700/60 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
+        : 'bg-black/5 text-gray-900 dark:bg-white/10 dark:text-white hover:bg-black/10 dark:hover:bg-white/15'
     }`}
   >
     <Icon icon={icon} size={16} />{label}
@@ -58,7 +58,7 @@ const AppearanceMenu = ({ dark, setDark, accent, setAccent, glass, setGlass, pre
 
       {open && (
         <div
-          className="absolute right-0 mt-2 min-w-[200px] grid gap-1.5 rounded-xl panel shadow-xl ring-1 ring-black/5 dark:ring-white/10 p-2 z-50"
+          className="absolute right-0 mt-2 min-w-[200px] grid gap-1.5 rounded-xl panel panel-menu shadow-xl ring-1 ring-black/5 dark:ring-white/10 p-2 z-50"
           role="dialog"
           aria-label="Appearance"
         >
