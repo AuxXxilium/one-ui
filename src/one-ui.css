@@ -197,6 +197,20 @@ body {
     background-color: rgb(39 39 42 / 0.3);
   }
 
+  /* backdrop-filter makes every glass box its own stacking context, so a
+     drop-down's z-index only ranks it among its own card's content: the next
+     card down comes later in the page and paints over the menu. The card
+     holding an open menu is lifted above its siblings instead - a menu that
+     is a <details>, or opened by a button carrying aria-expanded="true".
+     position: relative changes nothing else, as the blur already makes the
+     card the containing block for whatever is positioned inside it. Solid
+     boxes are no stacking context and need none of this. */
+  .glass .panel:has(details[open], [aria-expanded="true"]),
+  .panel.panel-glass:has(details[open], [aria-expanded="true"]) {
+    position: relative;
+    z-index: 10;
+  }
+
   /* Glass needs something to see through, so under it the washes are
      stronger. Still from the accent, so they follow the colour picker. */
   .glass .app-wash {

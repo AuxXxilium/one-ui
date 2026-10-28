@@ -246,7 +246,7 @@ The current page is a white pill with a coloured bar on its left. The ☰ button
 | `actions` | Buttons on the right of the title bar. |
 | `iconTone` | Colours the icon to show a state, e.g. `"text-red-500"` for failed. `iconSpin` makes it turn. |
 | `glass` | Makes only this card see-through. |
-| `overflow="visible"` | Lets a drop-down menu stick out of the card instead of being cut off. |
+| `overflow="visible"` | Lets a drop-down menu stick out of the card instead of being cut off. Under glass the card is lifted above the cards after it while the menu is open, so they do not cover it - when the menu is a `<details>`, or its button carries `aria-expanded="true"`. |
 
 ### TabbedCard
 
