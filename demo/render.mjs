@@ -28,23 +28,34 @@ const OUT = 'docs/renders';
 mkdirSync(OUT, { recursive: true });
 const url = (file, query) => `${pathToFileURL(resolve('demo', file)).href}?seed=42&${query}`;
 
-// name, file, query, options
+// The bottom-right corner, where the host widget sits, with the cards behind it.
+const CORNER = { x: 880, y: 400, width: 560, height: 500 };
+
+// name, file, query, options. widget=0 leaves the host widget out of the
+// pictures that are not about it: its button would sit over the content in the
+// corner of every page.
 const SHOTS = [
-  ['overview-light', 'index.html', 'page=overview&dark=0&accent=blue&glass=0'],
-  ['overview-dark', 'index.html', 'page=overview&dark=1&accent=blue&glass=0'],
-  ['overview-glass-light', 'index.html', 'page=overview&dark=0&accent=blue&glass=1'],
-  ['overview-glass-dark', 'index.html', 'page=overview&dark=1&accent=amber&glass=1'],
-  ['components-amber', 'index.html', 'page=components&dark=0&accent=amber&glass=0'],
-  ['forms-dark-green', 'index.html', 'page=forms&dark=1&accent=green&glass=0'],
-  ['tables-graphite', 'index.html', 'page=tables&dark=0&accent=graphite&glass=0'],
-  ['dialog-confirm', 'index.html', 'page=dialogs&dark=0&accent=red&glass=0&modal=confirm', { tall: false }],
-  ['dialogs-dark', 'index.html', 'page=dialogs&dark=1&accent=blue&glass=1'],
-  ['appearance-menu', 'index.html', 'page=about&dark=0&accent=blue&glass=1', { tall: false, menu: true }],
-  ['menus-glass-light', 'index.html', 'page=menus&dark=0&accent=green&glass=1&menu=1', { tall: false }],
-  ['menus-glass-dark', 'index.html', 'page=menus&dark=1&accent=amber&glass=1&menu=1', { tall: false }],
-  ['icons', 'index.html', 'page=icons&dark=0&accent=blue&glass=0'],
-  ['about-dark', 'index.html', 'page=about&dark=1&accent=red&glass=0'],
-  ['phone', 'index.html', 'page=overview&dark=0&accent=blue&glass=0', { width: 390, height: 844, scale: 2, tall: true }],
+  ['overview-light', 'index.html', 'page=overview&dark=0&accent=blue&glass=0&widget=0'],
+  ['overview-dark', 'index.html', 'page=overview&dark=1&accent=blue&glass=0&widget=0'],
+  ['overview-glass-light', 'index.html', 'page=overview&dark=0&accent=blue&glass=1&widget=0'],
+  ['overview-glass-dark', 'index.html', 'page=overview&dark=1&accent=amber&glass=1&widget=0'],
+  ['components-amber', 'index.html', 'page=components&dark=0&accent=amber&glass=0&widget=0'],
+  ['forms-dark-green', 'index.html', 'page=forms&dark=1&accent=green&glass=0&widget=0'],
+  ['tables-graphite', 'index.html', 'page=tables&dark=0&accent=graphite&glass=0&widget=0'],
+  ['dialog-confirm', 'index.html', 'page=dialogs&dark=0&accent=red&glass=0&modal=confirm&widget=0', { tall: false }],
+  ['dialogs-dark', 'index.html', 'page=dialogs&dark=1&accent=blue&glass=1&widget=0'],
+  ['appearance-menu', 'index.html', 'page=about&dark=0&accent=blue&glass=1&widget=0', { tall: false, menu: true }],
+  ['menus-glass-light', 'index.html', 'page=menus&dark=0&accent=green&glass=1&menu=1&widget=0', { tall: false }],
+  ['menus-glass-dark', 'index.html', 'page=menus&dark=1&accent=amber&glass=1&menu=1&widget=0', { tall: false }],
+  ['context-menu-glass-light', 'index.html', 'page=menus&dark=0&accent=red&glass=1&ctx=1&widget=0', { tall: false }],
+  ['context-menu-dark', 'index.html', 'page=menus&dark=1&accent=graphite&glass=0&ctx=1&widget=0', { tall: false }],
+  ['widget-solid-light', 'index.html', 'page=overview&dark=0&accent=blue&glass=0&widget=1', { tall: false, clip: CORNER }],
+  ['widget-solid-dark', 'index.html', 'page=overview&dark=1&accent=blue&glass=0&widget=1', { tall: false, clip: CORNER }],
+  ['widget-glass-light', 'index.html', 'page=overview&dark=0&accent=blue&glass=1&widget=1', { tall: false, clip: CORNER }],
+  ['widget-glass-dark', 'index.html', 'page=overview&dark=1&accent=amber&glass=1&widget=1', { tall: false, clip: CORNER }],
+  ['icons', 'index.html', 'page=icons&dark=0&accent=blue&glass=0&widget=0'],
+  ['about-dark', 'index.html', 'page=about&dark=1&accent=red&glass=0&widget=0'],
+  ['phone', 'index.html', 'page=overview&dark=0&accent=blue&glass=0&widget=0', { width: 390, height: 844, scale: 2, tall: true }],
   ['plain-light', 'plain.html', 'x=1', { plain: { dark: false, glass: false, accent: 'blue' } }],
   ['plain-dark-glass', 'plain.html', 'x=1', { plain: { dark: true, glass: true, accent: 'amber' } }],
 ];
@@ -86,7 +97,7 @@ for (const [name, file, query, opt = {}] of SHOTS) {
     await new Promise((r) => setTimeout(r, 200));
   }
 
-  await page.screenshot({ path: `${OUT}/${name}.png` });
+  await page.screenshot({ path: `${OUT}/${name}.png`, ...(opt.clip ? { clip: opt.clip } : {}) });
   console.log(`${OUT}/${name}.png`);
 }
 

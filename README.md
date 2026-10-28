@@ -428,6 +428,80 @@ You can also write `class="field"` instead of `inputClass`; it looks the same. C
 
 Use these instead of writing your own, so waiting and "nothing here" look the same on every page.
 
+### ContextMenu
+
+**A right-click menu.** It opens at the pointer, moves itself back inside the window near an edge, and opens upward when there is no room below. Up and Down move between the items, Escape closes it, and so does a click elsewhere, scrolling or resizing. It is clearer glass than the cards, like every menu.
+
+| **Glass, light, red** | **Solid, dark, graphite** |
+|---|---|
+| ![Right-click menu in light glass](docs/renders/context-menu-glass-light.png) | ![Right-click menu, solid dark](docs/renders/context-menu-dark.png) |
+
+```jsx
+const [menu, setMenu] = useState(null);
+
+<Card onContextMenu={(e) => {
+  e.preventDefault();
+  e.stopPropagation();              // so the page's own menu does not replace it
+  setMenu({ x: e.clientX, y: e.clientY, title: 'Project Granite', items: [
+    { label: 'Rename', icon: 'edit', onClick: rename },
+    { label: 'Share link', icon: 'link', onClick: share },
+    'separator',
+    { label: 'Delete', icon: 'trash', danger: true, onClick: remove },
+  ] });
+}}>…</Card>
+
+<ContextMenu menu={menu} onClose={() => setMenu(null)} />
+```
+
+An item is `{ label, onClick, icon, danger, disabled, title }`, or `'separator'` for a line between groups. Picking one closes the menu before its action runs, so a dialog it opens is not drawn under the menu.
+
+**Turn the browser's menu off** where an app has its own: `useNoBrowserMenu()` once, in the app. Right-click then opens the app's menu where it has one, and does nothing anywhere else. Text fields keep the browser's menu, for paste and spelling. The demo does this: its **Menus** page has a menu on each card and one for the page, and right-clicking anywhere else does nothing.
+
+### StatsWidget
+
+**A small live reading in the bottom-right corner**, from Firevisor's host widget. Closed it is one button. Open it shows up to three dials (shares of a whole: CPU, memory, storage), tiles of paired rates (network down and up, disk read and write), a bar per volume and one figure in the title bar, such as the hottest sensor. Whether it is open is remembered.
+
+| **Solid, light** | **Solid, dark** |
+|---|---|
+| ![Widget, solid light](docs/renders/widget-solid-light.png) | ![Widget, solid dark](docs/renders/widget-solid-dark.png) |
+| **Glass, light** | **Glass, dark, amber** |
+| ![Widget, glass light](docs/renders/widget-glass-light.png) | ![Widget, glass dark](docs/renders/widget-glass-dark.png) |
+
+It only draws: your app fetches the numbers and passes them in. Fetch only while it is open, and only while the page is on screen - `useVisiblePoll` does both, and waits for each answer before asking again. A monitor should not cost the machine it watches.
+
+```jsx
+const [open, setOpen] = useState(false);
+const [s, setS] = useState(null);
+useVisiblePoll(async () => { if (open) setS(await api.stats()); }, 5000, open, open);
+
+<StatsWidget
+  title="Host"
+  open={open}
+  onOpenChange={setOpen}
+  loading={!s}
+  badge={s && { text: `${s.temp}°C`, title: 'CPU package' }}
+  rings={s ? [{ label: 'CPU', pct: s.cpu }, { label: 'Memory', pct: s.mem }, { label: 'Storage', pct: s.disk }] : []}
+  rates={s ? [
+    { label: 'Network', items: [{ key: '↓', value: s.rx, tone: 'bg-blue-500' }, { key: '↑', value: s.tx, tone: 'bg-violet-500' }] },
+    { label: 'Disk', items: [{ key: 'Read', value: s.read, tone: 'bg-green-500' }, { key: 'Write', value: s.write, tone: 'bg-amber-500' }] },
+  ] : []}
+  bars={s ? s.volumes.map((v) => ({ label: v.name, pct: v.pct, detail: `${formatBytes(v.free)} free` })) : []}
+/>
+```
+
+| Option | Meaning |
+|---|---|
+| `rings` | Up to three dials: `{ label, pct, value }`. `value` is the text inside, `pct` with a % by default. |
+| `rates` | Tiles of two rates each: `{ label, items: [{ key, value, tone, text }] }`. `value` is bytes per second, shown with `formatRate`; `null` shows a dash, for "no second reading yet". Both bars in a tile share one scale: the largest rate it has shown since the widget opened. |
+| `bars` | One line each: `{ label, pct, detail, title }`. |
+| `badge` | One figure in the title bar: `{ text, title }`. |
+| `loading`, `error` | "Reading…", or the error text in red. |
+| `open`, `onOpenChange` | Open or closed, from your app. Leave `open` out and the widget keeps it itself, remembered under `storageKey`. |
+| `glass` | Makes only this widget see-through, like `<Card glass>`. |
+| `className` | Where it sits; `fixed bottom-4 right-4 z-40` by default. |
+
+Dials and volume bars are green, then amber from 70 % and red from 90 %: status colours, never the highlight, so a dial never reads as healthy at 95 %. Its tracks and the title-bar figure are tints, so under glass they do not lay solid bars across it. `formatRate` and `formatBytes` are exported too.
+
 ### Tables
 
 **Put `data-table` on any table** for the One UI look: a quiet grey header, roomy rows and a tint under the row the mouse is over. On a phone, a table that is too wide scrolls sideways inside its card.
@@ -443,7 +517,7 @@ Use these instead of writing your own, so waiting and "nothing here" look the sa
 
 ![All icons](docs/renders/icons.png)
 
-There are 94 line icons, all drawn the same way so they sit well together and take the colour of whatever they are in. Use them by name:
+There are 96 line icons, all drawn the same way so they sit well together and take the colour of whatever they are in. Use them by name:
 
 ```jsx
 <Icon icon="refresh" />                        // 16 px, in the text colour
@@ -531,11 +605,13 @@ src/                  The preset (Preact + Tailwind)
   one-ui.css            colours, dark mode, glass, tables, scrollbars
   theme.js              the five colours and the light/dark/glass switches
   useTheme.js           all of the above for a Preact app, remembered
+  useVisiblePoll.js     poll only while the page is on screen
   styles.js             inputClass, labelClass, hintClass
-  icons.jsx             the 94 icons, Icon, IconTile, IconLabel
+  icons.jsx             the icons, Icon, IconTile, IconLabel
   components/           AppShell, Sidebar, AppearanceMenu, PageHeader, PageTabs, Card,
                         TabbedCard, Button, StatusBadge, ToggleSwitch, Segmented, Modal,
-                        CopyField, Feedback (Loading, Empty, Notice, ProgressBar), Credits
+                        CopyField, Feedback (Loading, Empty, Notice, ProgressBar),
+                        ContextMenu, StatsWidget, Credits
   index.js              everything, from one place: import { Card } from 'one-ui'
 plain/                The plain version
   one-ui-plain.css      the stylesheet
@@ -558,7 +634,7 @@ npm run build     # builds demo/demo.js and demo.css; open demo/index.html
 npm run render    # builds, then takes new pictures for docs/renders (needs Chrome or Edge)
 ```
 
-The demo's content is made up and different on every load. Add `?seed=7` to the address to get the same content every time; the pictures use seed 42. The address can also choose what is shown, e.g. `index.html?page=forms&dark=1&accent=green&glass=1`.
+The demo's content is made up and different on every load. Add `?seed=7` to the address to get the same content every time; the pictures use seed 42. The address can also choose what is shown, e.g. `index.html?page=forms&dark=1&accent=green&glass=1`. On the Menus page `&menu=1` opens a card's "…" menu and `&ctx=1` a right-click menu; `&widget=1` opens the host widget and `&widget=0` leaves it out.
 
 **The live demo** at https://auxxxilium.github.io/one-ui/demo/ is the `demo/` folder exactly as it is in the repository: GitHub Pages serves the `main` branch, with this README as the start page. So after changing anything in `src/`, `plain/` or `demo/src/`, run `npm run build` and commit the rebuilt `demo/demo.js`, `demo/demo.css` and `plain/one-ui-plain.js` with your change.
 

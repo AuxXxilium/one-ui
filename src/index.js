@@ -16,6 +16,8 @@ export { default as Segmented } from './components/Segmented';
 export { default as Modal } from './components/Modal';
 export { default as CopyField, copyText } from './components/CopyField';
 export { Loading, Empty, Notice, ProgressBar } from './components/Feedback';
+export { default as ContextMenu, useNoBrowserMenu } from './components/ContextMenu';
+export { default as StatsWidget, formatRate, formatBytes } from './components/StatsWidget';
 export { default as Credits, ONE_UI_CREDITS } from './components/Credits';
 export { ICONS, Icon, IconTile, IconLabel } from './icons';
 export { inputClass, labelClass, hintClass } from './styles';
@@ -24,3 +26,4 @@ export {
   applyAccent, applyDark, applyGlass, readStoredAccent, readStoredDark, readStoredGlass, storeValue,
 } from './theme';
 export { useTheme } from './useTheme';
+export { useVisiblePoll } from './useVisiblePoll';

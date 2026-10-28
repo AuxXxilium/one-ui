@@ -116,6 +116,42 @@ export const projects = (n) => pickSome(PROJECTS, n).map((name) => {
   };
 });
 
+// A host's readings for the stats widget: a first reading, then each next one
+// drifting from the last, as a live machine's do.
+const drift = (v, by, min, max) => Math.max(min, Math.min(max, v + (rand() - 0.5) * 2 * by));
+const GB = 1024 ** 3;
+
+export const hostStats = (old) => {
+  if (!old) {
+    const volumes = ['pool', 'backup', 'media'].slice(0, int(1, 3)).map((name) => {
+      const total = int(2, 16) * 512 * GB;
+      const pct = int(15, 92);
+      return { name, pct, free: total * (1 - pct / 100) };
+    });
+    return {
+      cpu: int(6, 45),
+      memory: int(35, 78),
+      storage: Math.round(volumes.reduce((n, v) => n + v.pct, 0) / volumes.length),
+      temp: int(38, 64),
+      rx: int(20, 900) * 1024,
+      tx: int(5, 300) * 1024,
+      read: int(0, 60) * 1024 * 1024,
+      write: int(0, 20) * 1024 * 1024,
+      volumes,
+    };
+  }
+  return {
+    ...old,
+    cpu: Math.round(drift(old.cpu, 9, 1, 100)),
+    memory: Math.round(drift(old.memory, 2, 5, 99)),
+    temp: Math.round(drift(old.temp, 2, 30, 90)),
+    rx: drift(old.rx, old.rx * 0.6, 0, 1e9),
+    tx: drift(old.tx, old.tx * 0.6, 0, 1e9),
+    read: drift(old.read, old.read * 0.7 + 1024, 0, 1e9),
+    write: drift(old.write, old.write * 0.7 + 1024, 0, 1e9),
+  };
+};
+
 export const settings = (n) => pickSome([
   ['Email updates', 'A message when something changes'],
   ['Weekly summary', 'Every Monday morning'],

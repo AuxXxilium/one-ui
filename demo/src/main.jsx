@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'preact/hooks';
 import {
   AppShell, PageHeader, PageTabs, Card, TabbedCard, InfoTile, TILE, Button, StatusBadge, ToggleSwitch,
   Segmented, Modal, CopyField, Loading, Empty, Notice, ProgressBar, Credits, Icon, IconTile, ICONS,
+  ContextMenu, StatsWidget, formatBytes, useNoBrowserMenu, useVisiblePoll,
   inputClass, labelClass, hintClass, useTheme, storeValue,
 } from '../../src/index';
 import * as R from './random';
@@ -12,7 +13,9 @@ import * as R from './random';
 //
 // The address can set what is shown, which is how demo/render.mjs takes its
 // screenshots: ?page=overview&dark=1&accent=amber&glass=1&modal=confirm&seed=7
-// (&menu=1 on the Menus page opens a card's menu)
+// On the Menus page &menu=1 opens a card's "..." menu and &ctx=1 a card's
+// right-click menu; &widget=1 opens the host widget and &widget=0 leaves it
+// out.
 
 const params = new URLSearchParams(location.search);
 if (params.has('dark')) storeValue('darkMode', params.get('dark') === '1');
@@ -348,7 +351,7 @@ const MENU = [
   { label: 'Duplicate', icon: 'copy' },
   { label: 'Share link', icon: 'link' },
   { label: 'Archive', icon: 'package' },
-  '-',
+  'separator',
   { label: 'Delete', icon: 'trash', danger: true },
 ];
 
@@ -356,7 +359,8 @@ const MENU = [
 // under glass it is clearer than the cards it floats over, and rows that mark
 // hover and the divider with a tint. The button carries aria-expanded, which
 // is what lifts the card above the ones after it while the menu is open.
-const ProjectCard = ({ p, startOpen }) => {
+// Right-clicking the card opens the same actions as a ContextMenu.
+const ProjectCard = ({ p, startOpen, onContextMenu }) => {
   const [open, setOpen] = useState(startOpen);
   const ref = useRef(null);
 
@@ -373,7 +377,7 @@ const ProjectCard = ({ p, startOpen }) => {
   }, [open]);
 
   return (
-    <Card overflow="visible">
+    <Card overflow="visible" onContextMenu={onContextMenu}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <IconTile icon="layers" />
@@ -388,7 +392,7 @@ const ProjectCard = ({ p, startOpen }) => {
           </Button>
           {open && (
             <div role="menu" className="absolute right-0 top-full mt-1 z-20 w-48 rounded-xl panel panel-menu shadow-xl ring-1 ring-black/5 dark:ring-white/10 p-1">
-              {MENU.map((item, i) => (item === '-' ? (
+              {MENU.map((item, i) => (item === 'separator' ? (
                 <div key={i} role="separator" className="my-1 mx-1.5 h-px bg-black/10 dark:bg-white/10" />
               ) : (
                 <button
@@ -421,17 +425,87 @@ const ProjectCard = ({ p, startOpen }) => {
   );
 };
 
+// The right-click menus: a card's actions on a card, and what the page header
+// would offer anywhere else on the page. Not inside a dialog, which is drawn
+// within the page but is not part of it.
+const pageItems = [
+  { label: 'New project', icon: 'plus' },
+  { label: 'Import', icon: 'upload' },
+  'separator',
+  { label: 'Refresh', icon: 'refresh' },
+  { label: 'Sort by name', icon: 'list', disabled: true, title: 'Already sorted by name' },
+];
+
 const Menus = () => {
   const [list] = useState(() => R.projects(6));
+  // Opened at a spot on the fifth card for the pictures, as a right-click
+  // there would.
+  const [ctx, setCtx] = useState(() => (params.get('ctx') === '1'
+    ? { x: 780, y: 392, title: list[4].name, items: MENU }
+    : null));
+
+  const openCardMenu = (e, p) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCtx({ x: e.clientX, y: e.clientY, title: p.name, items: MENU });
+  };
+  const openPageMenu = (e) => {
+    if (e.target.closest && e.target.closest('[role="dialog"]')) return;
+    e.preventDefault();
+    setCtx({ x: e.clientX, y: e.clientY, items: pageItems });
+  };
+
   return (
-    <div className="space-y-6">
-      <PageHeader icon="menu" title="Menus" subtitle="A card's ... menu, floating over the cards around it" />
+    <div className="space-y-6 min-h-full" onContextMenu={openPageMenu}>
+      <PageHeader icon="menu" title="Menus" subtitle="A card's ... menu, and a right-click on a card or anywhere on the page" />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {list.map((p, i) => (
-          <ProjectCard key={p.name} p={p} startOpen={i === 1 && params.get('menu') === '1'} />
+          <ProjectCard
+            key={p.name}
+            p={p}
+            startOpen={i === 1 && params.get('menu') === '1'}
+            onContextMenu={(e) => openCardMenu(e, p)}
+          />
         ))}
       </div>
+      <ContextMenu menu={ctx} onClose={() => setCtx(null)} />
     </div>
+  );
+};
+
+// The host widget, fed made-up readings. Polled only while it is open, through
+// useVisiblePoll, the way an app would poll its backend.
+const HostWidget = () => {
+  const [open, setOpen] = useState(params.get('widget') === '1');
+  const [stats, setStats] = useState(null);
+  useVisiblePoll(async () => {
+    if (open) setStats((old) => R.hostStats(old));
+  }, 2000, open, open);
+
+  return (
+    <StatsWidget
+      title="Host"
+      open={open}
+      onOpenChange={setOpen}
+      loading={!stats}
+      badge={stats && { text: `${stats.temp}°C`, title: 'CPU package' }}
+      rings={stats ? [
+        { label: 'CPU', pct: stats.cpu },
+        { label: 'Memory', pct: stats.memory },
+        { label: 'Storage', pct: stats.storage },
+      ] : []}
+      rates={stats ? [
+        { label: 'Network', items: [
+          { key: '↓', value: stats.rx, tone: 'bg-blue-500' },
+          { key: '↑', value: stats.tx, tone: 'bg-violet-500' },
+        ] },
+        { label: 'Disk', items: [
+          { key: 'Read', value: stats.read, tone: 'bg-green-500' },
+          { key: 'Write', value: stats.write, tone: 'bg-amber-500' },
+        ] },
+      ] : []}
+      bars={stats ? stats.volumes.map((v) => ({ label: v.name, pct: v.pct, detail: `${formatBytes(v.free)} free` })) : []}
+    />
   );
 };
 
@@ -528,6 +602,9 @@ const PAGES = { overview: Overview, components: Components, forms: Forms, tables
 
 const App = () => {
   const theme = useTheme();
+  // The demo has right-click menus of its own (on the Menus page), so the
+  // browser's is turned off everywhere else, text fields aside.
+  useNoBrowserMenu();
   const [page, setPage] = useState(PAGES[params.get('page')] ? params.get('page') : 'overview');
   const Page = PAGES[page];
   return (
@@ -541,6 +618,7 @@ const App = () => {
       onSelect={setPage}
     >
       <Page initial={params.get('modal')} />
+      {params.get('widget') !== '0' && <HostWidget />}
     </AppShell>
   );
 };
