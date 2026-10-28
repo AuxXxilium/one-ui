@@ -31,6 +31,7 @@ You don't have to write the credit yourself:
 - [What it looks like](#what-it-looks-like)
 - [Two ways to use it](#two-ways-to-use-it)
 - [Light, dark, colour and glass](#light-dark-colour-and-glass)
+- [App icons](#app-icons)
 - [The elements](#the-elements)
 - [Plain HTML (no build step)](#plain-html-no-build-step)
 - [What is in this folder](#what-is-in-this-folder)
@@ -144,6 +145,39 @@ const theme = useTheme({ defaultGlass: true });
 ```
 
 **Only one glass box:** `<Card glass>` makes just that card see-through, even when the rest of the app is solid.
+
+---
+
+## App icons
+
+Every Arc app's icon starts from the same **flat icon**: a slate rounded square with a white symbol and one red detail. One script turns it into one of three finished styles. The symbol itself is never redrawn: it is lifted out of the flat icon exactly, so every style keeps the artwork pixel for pixel.
+
+Each picture shows the same four icons on white, on a dark background and on a colourful wallpaper.
+
+| Style | Looks like |
+|---|---|
+| **Flat** (the source) | ![Flat](docs/renders/app-icon-flat.png) |
+| **Frosted** | ![Frosted](docs/renders/app-icon-frosted.png) |
+| **Frosted 3D** | ![Frosted 3D](docs/renders/app-icon-frosted-3d.png) |
+| **Glyph 3D** | ![Glyph 3D](docs/renders/app-icon-glyph-3d.png) |
+
+| Style | What it is | Use it when |
+|---|---|---|
+| `frosted` | The square as frosted glass: see-through, milky, with a fine grain, a glow along the edges and a bright rim. The wallpaper shows through. | The icon sits on a desktop or a dark menu. |
+| `frosted-3d` | The same glass, with the symbol standing off it and the square showing its thickness, with a soft shadow under it. | As above, with more depth. |
+| `glyph-3d` | No square: the symbol alone and larger, with a white face in a slate outline over a dark side and a small shadow. | The icon also appears on **white**: menus, window title bars, Package Center. Glass turns pale on white and the white symbol fades with it, so this is the style the Arc apps use. |
+
+**Making one:**
+
+```bash
+python icons/app-icon.py --style glyph-3d my-app-flat.png -o my-app.png
+python icons/app-icon.py --style frosted  my-app-flat.png -o my-app.png
+```
+
+- The script needs Python 3 with **Pillow** and **NumPy** (`pip install pillow numpy`).
+- `--style` is `frosted`, `frosted-3d` or `glyph-3d` (the default).
+- `--fill` sets how much of the icon the symbol fills in `glyph-3d`, as a share. The default is `0.72`.
+- The source must be a **flat** icon in the template: 1280 × 1280 px, a 1024 px square with rounded corners, the slate gradient, a white symbol and red details. **Keep the flat file.** A finished icon can't be used as the source again.
 
 ---
 
@@ -498,6 +532,8 @@ src/                  The preset (Preact + Tailwind)
 plain/                The plain version
   one-ui-plain.css      the stylesheet
   one-ui-plain.js       the theme script (built from entry.js, don't edit it)
+icons/                App icons
+  app-icon.py           a flat icon to frosted, frosted 3D or glyph 3D
 demo/                 The live demo: index.html and plain.html, built demo.js and demo.css
   src/                  the demo's sources, with its sample data
 docs/renders/         The pictures in this README
