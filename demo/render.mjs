@@ -40,6 +40,8 @@ const SHOTS = [
   ['dialog-confirm', 'index.html', 'page=dialogs&dark=0&accent=red&glass=0&modal=confirm', { tall: false }],
   ['dialogs-dark', 'index.html', 'page=dialogs&dark=1&accent=blue&glass=1'],
   ['appearance-menu', 'index.html', 'page=about&dark=0&accent=blue&glass=1', { tall: false, menu: true }],
+  ['menus-glass-light', 'index.html', 'page=menus&dark=0&accent=green&glass=1&menu=1', { tall: false }],
+  ['menus-glass-dark', 'index.html', 'page=menus&dark=1&accent=amber&glass=1&menu=1', { tall: false }],
   ['icons', 'index.html', 'page=icons&dark=0&accent=blue&glass=0'],
   ['about-dark', 'index.html', 'page=about&dark=1&accent=red&glass=0'],
   ['phone', 'index.html', 'page=overview&dark=0&accent=blue&glass=0', { width: 390, height: 844, scale: 2, tall: true }],

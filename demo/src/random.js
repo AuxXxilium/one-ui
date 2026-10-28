@@ -99,6 +99,23 @@ export const files = (n) => pickSome(FILES, n).map(([name, ext]) => {
   };
 });
 
+export const projects = (n) => pickSome(PROJECTS, n).map((name) => {
+  const total = int(8, 40);
+  const done = int(0, total);
+  const s = rand();
+  const status = done === total ? 'success' : s < 0.6 ? 'info' : s < 0.85 ? 'warning' : 'error';
+  return {
+    name: `Project ${name}`,
+    owner: person(),
+    members: int(3, 18),
+    total,
+    done,
+    due: date(),
+    status,
+    statusLabel: { success: 'Finished', info: 'On track', warning: 'At risk', error: 'Late' }[status],
+  };
+});
+
 export const settings = (n) => pickSome([
   ['Email updates', 'A message when something changes'],
   ['Weekly summary', 'Every Monday morning'],

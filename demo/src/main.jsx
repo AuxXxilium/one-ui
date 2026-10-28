@@ -1,5 +1,5 @@
 import { h, Fragment, render } from 'preact';
-import { useState } from 'preact/hooks';
+import { useState, useEffect, useRef } from 'preact/hooks';
 import {
   AppShell, PageHeader, PageTabs, Card, TabbedCard, InfoTile, TILE, Button, StatusBadge, ToggleSwitch,
   Segmented, Modal, CopyField, Loading, Empty, Notice, ProgressBar, Credits, Icon, IconTile, ICONS,
@@ -12,6 +12,7 @@ import * as R from './random';
 //
 // The address can set what is shown, which is how demo/render.mjs takes its
 // screenshots: ?page=overview&dark=1&accent=amber&glass=1&modal=confirm&seed=7
+// (&menu=1 on the Menus page opens a card's menu)
 
 const params = new URLSearchParams(location.search);
 if (params.has('dark')) storeValue('darkMode', params.get('dark') === '1');
@@ -23,6 +24,7 @@ const NAV = [
   { id: 'components', label: 'Buttons & badges', icon: 'addons', section: 'Elements' },
   { id: 'forms', label: 'Forms & settings', icon: 'settings', section: 'Elements' },
   { id: 'tables', label: 'Tables & lists', icon: 'list', section: 'Elements' },
+  { id: 'menus', label: 'Menus', icon: 'menu', section: 'Elements' },
   { id: 'dialogs', label: 'Dialogs & messages', icon: 'notifications', section: 'Elements' },
   { id: 'icons', label: 'Icons', icon: 'layers', section: 'Elements' },
   { id: 'about', label: 'About', icon: 'about', section: 'Help' },
@@ -340,6 +342,99 @@ const Tables = () => {
   );
 };
 
+const MENU = [
+  { label: 'Open', icon: 'external' },
+  { label: 'Rename', icon: 'edit' },
+  { label: 'Duplicate', icon: 'copy' },
+  { label: 'Share link', icon: 'link' },
+  { label: 'Archive', icon: 'package' },
+  '-',
+  { label: 'Delete', icon: 'trash', danger: true },
+];
+
+// A card's "..." menu, built the way the README says: panel panel-menu, so
+// under glass it is clearer than the cards it floats over, and rows that mark
+// hover and the divider with a tint. The button carries aria-expanded, which
+// is what lifts the card above the ones after it while the menu is open.
+const ProjectCard = ({ p, startOpen }) => {
+  const [open, setOpen] = useState(startOpen);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  return (
+    <Card overflow="visible">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <IconTile icon="layers" />
+          <div className="min-w-0">
+            <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{p.name}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">{p.owner} · {p.members} members</div>
+          </div>
+        </div>
+        <div className="relative shrink-0" ref={ref}>
+          <Button variant="secondary" size="xs" icon="more" iconOnly aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+            More actions
+          </Button>
+          {open && (
+            <div role="menu" className="absolute right-0 top-full mt-1 z-20 w-48 rounded-xl panel panel-menu shadow-xl ring-1 ring-black/5 dark:ring-white/10 p-1">
+              {MENU.map((item, i) => (item === '-' ? (
+                <div key={i} role="separator" className="my-1 mx-1.5 h-px bg-black/10 dark:bg-white/10" />
+              ) : (
+                <button
+                  key={item.label}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => setOpen(false)}
+                  className={`flex w-full items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-sm text-left hover:bg-black/5 dark:hover:bg-white/10 ${
+                    item.danger ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-200'
+                  }`}
+                >
+                  <Icon icon={item.icon} size={16} />{item.label}
+                </button>
+              )))}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="mt-4 space-y-1.5">
+        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+          <span>{p.done} of {p.total} tasks</span>
+          <span>due {p.due}</span>
+        </div>
+        <ProgressBar value={p.done / p.total} />
+      </div>
+      <div className="mt-3">
+        <StatusBadge status={p.status} label={p.statusLabel} />
+      </div>
+    </Card>
+  );
+};
+
+const Menus = () => {
+  const [list] = useState(() => R.projects(6));
+  return (
+    <div className="space-y-6">
+      <PageHeader icon="menu" title="Menus" subtitle="A card's ... menu, floating over the cards around it" />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {list.map((p, i) => (
+          <ProjectCard key={p.name} p={p} startOpen={i === 1 && params.get('menu') === '1'} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const Dialogs = ({ initial }) => {
   const [open, setOpen] = useState(initial);
   const [notes, setNotes] = useState(['info', 'success', 'warning', 'error']);
@@ -429,7 +524,7 @@ const About = () => (
 
 // ---------------------------------------------------------------- app
 
-const PAGES = { overview: Overview, components: Components, forms: Forms, tables: Tables, dialogs: Dialogs, icons: Icons, about: About };
+const PAGES = { overview: Overview, components: Components, forms: Forms, tables: Tables, menus: Menus, dialogs: Dialogs, icons: Icons, about: About };
 
 const App = () => {
   const theme = useTheme();

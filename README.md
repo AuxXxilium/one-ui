@@ -146,7 +146,11 @@ const theme = useTheme({ defaultGlass: true });
 
 **Only one glass box:** `<Card glass>` makes just that card see-through, even when the rest of the app is solid.
 
-**Menus:** a box that floats over the page - a drop-down, a right-click menu, a popover - takes `panel panel-menu` instead of `panel`. Under glass it is clearer than the boxes around it, so it does not turn into a flat white sheet over a light card. Mark its hover rows and dividers with a tint (`bg-black/5 dark:bg-white/10`) rather than a grey, which would lay a solid bar across the glass. The appearance menu is built this way.
+**Menus:** a box that floats over the page - a drop-down, a right-click menu, a popover - takes `panel panel-menu` instead of `panel`. Under glass it is clearer than the boxes around it, so it does not turn into a flat white sheet over a light card. Mark its hover rows and dividers with a tint (`bg-black/5 dark:bg-white/10`) rather than a grey, which would lay a solid bar across the glass. The appearance menu is built this way, and so is the card menu on the demo's **Menus** page: a `<Card overflow="visible">` whose "more" button carries `aria-expanded`, so the card is lifted above the ones after it while the menu is open.
+
+| **Card menu, glass, light** | **Card menu, glass, dark, amber** |
+|---|---|
+| ![Card menu in light glass](docs/renders/menus-glass-light.png) | ![Card menu in dark glass](docs/renders/menus-glass-dark.png) |
 
 **A box that marks itself with an inset shadow** - an accent bar down one side, say - draws it on an `::after` covering the box (`relative after:absolute after:inset-0 after:rounded-[inherit] after:shadow-[inset_…]`). Under glass the tint and blur are a layer over everything the box itself draws, and a shadow on the box would come out washed. The sidebar's current page does it this way.
 
