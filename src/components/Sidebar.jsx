@@ -26,6 +26,11 @@ const loadCollapsed = (key) => {
 // accent and an accent bar down its left edge. The bar is an inset shadow so
 // it follows the pill's rounded corners. Everything else is transparent until
 // hovered, so the sidebar reads as part of the ground, not a second panel.
+//
+// The pill is a .panel, so it turns glass with the cards. The bar is drawn on
+// an ::after covering the pill rather than on the pill itself: glass lays its
+// tint on a layer over everything the box draws, and a bar under it would
+// come out washed.
 const Sidebar = ({ items, active, onSelect, open = true, storageKey = 'sidebarCollapsedSections', footer }) => {
   const [collapsed, setCollapsed] = useState(() => loadCollapsed(storageKey));
 
@@ -47,7 +52,7 @@ const Sidebar = ({ items, active, onSelect, open = true, storageKey = 'sidebarCo
 
   const itemClass = (isActive) => `group w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-colors duration-150 ${
     isActive
-      ? 'panel ring-1 ring-black/5 dark:ring-white/5 shadow-[inset_4px_0_0_0_rgb(var(--accent-500)/0.65),0_1px_2px_0_rgb(0_0_0/0.05)] dark:shadow-[inset_4px_0_0_0_rgb(var(--accent-400)/0.65),0_1px_2px_0_rgb(0_0_0/0.05)]'
+      ? 'panel relative ring-1 ring-black/5 dark:ring-white/5 shadow-[0_1px_2px_0_rgb(0_0_0/0.05)] after:absolute after:inset-0 after:rounded-[inherit] after:pointer-events-none after:shadow-[inset_4px_0_0_0_rgb(var(--accent-500)/0.65)] dark:after:shadow-[inset_4px_0_0_0_rgb(var(--accent-400)/0.65)]'
       : 'hover:bg-white/60 dark:hover:bg-white/5'
   } ${open ? '' : 'justify-center'}`;
 

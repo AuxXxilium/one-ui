@@ -162,19 +162,53 @@ body {
   /* Glass: the same boxes, a little see-through, with a soft blur behind and a
      faint edge so they still read as boxes. All of them, with the .glass class
      on <html> (applyGlass, or Surface: Glass in the appearance menu), or one
-     at a time with .panel-glass (<Card glass>). */
+     at a time with .panel-glass (<Card glass>).
+
+     The blur is on a layer under the box's content, not on the box itself.
+     backdrop-filter makes its element the containing block for everything
+     positioned inside it, and the edge of what any blur inside it can see: a
+     dialog opened from inside a card was placed against the card and cut off
+     by its overflow-hidden, and a drop-down hanging out of a card blurred
+     only that card, so the next one showed through it sharp. isolation keeps
+     the layer above the box's ancestors and under its content without doing
+     either. position: relative only reaches a box with no position utility of
+     its own - utilities are a later layer - so an absolute menu stays where
+     it was put.
+
+     The layer paints over everything the box itself draws, so the faint edge
+     is on the layer too, and a box that marks itself with an inset shadow
+     draws it on an ::after instead (the sidebar's current page). */
   .glass .panel,
   .panel.panel-glass {
+    position: relative;
+    isolation: isolate;
+    background-color: transparent;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+  }
+
+  .glass .panel::before,
+  .panel.panel-glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
     background-color: rgb(255 255 255 / 0.5);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.6);
     -webkit-backdrop-filter: blur(16px) saturate(1.5);
     backdrop-filter: blur(16px) saturate(1.5);
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.6), 0 1px 3px rgb(0 0 0 / 0.06);
   }
 
   .dark.glass .panel,
   .dark .panel.panel-glass {
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+  }
+
+  .dark.glass .panel::before,
+  .dark .panel.panel-glass::before {
     background-color: rgb(39 39 42 / 0.45);
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07), 0 8px 24px rgb(0 0 0 / 0.25);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07);
   }
 
   /* A menu floats over the page rather than sitting on it, so under glass it
@@ -185,29 +219,26 @@ body {
      popover; its rows mark hover and dividers with a tint (bg-black/5,
      dark:bg-white/10) rather than a grey of their own, which would put an
      opaque bar back across the glass. */
-  .glass .panel.panel-menu,
-  .panel.panel-glass.panel-menu {
+  .glass .panel.panel-menu::before,
+  .panel.panel-glass.panel-menu::before {
     background-color: rgb(255 255 255 / 0.3);
     -webkit-backdrop-filter: blur(12px) saturate(1.8);
     backdrop-filter: blur(12px) saturate(1.8);
   }
 
-  .dark.glass .panel.panel-menu,
-  .dark .panel.panel-glass.panel-menu {
+  .dark.glass .panel.panel-menu::before,
+  .dark .panel.panel-glass.panel-menu::before {
     background-color: rgb(39 39 42 / 0.3);
   }
 
-  /* backdrop-filter makes every glass box its own stacking context, so a
+  /* isolation makes every glass box its own stacking context, so a
      drop-down's z-index only ranks it among its own card's content: the next
      card down comes later in the page and paints over the menu. The card
      holding an open menu is lifted above its siblings instead - a menu that
      is a <details>, or opened by a button carrying aria-expanded="true".
-     position: relative changes nothing else, as the blur already makes the
-     card the containing block for whatever is positioned inside it. Solid
-     boxes are no stacking context and need none of this. */
+     Solid boxes are no stacking context and need none of this. */
   .glass .panel:has(details[open], [aria-expanded="true"]),
   .panel.panel-glass:has(details[open], [aria-expanded="true"]) {
-    position: relative;
     z-index: 10;
   }
 
