@@ -4,6 +4,8 @@
 
 One UI gives every app the same cards, buttons, colours and dark mode, so moving between them feels like using one product.
 
+> **Not related to Samsung.** This One UI is a separate project from Samsung's One UI Android skin; the two only share a name. It is not affiliated with, endorsed by or based on Samsung, and it does not copy or follow Samsung's design.
+
 ### ▶ [Open the live demo](https://auxxxilium.github.io/one-ui/demo/)
 
 The demo shows every element filled with made-up sample content. Use the sun/moon button in the top right to try light and dark, the five colours and the glass look. There is also a [plain HTML version](https://auxxxilium.github.io/one-ui/demo/plain.html).
