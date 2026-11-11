@@ -51,6 +51,7 @@ export const ICONS = {
   trash: <Fragment><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14" /><path d="M10 11v6M14 11v6" /></Fragment>,
   file: <Fragment><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5" /><path d="M9 13h6M9 17h6" /></Fragment>,
   external: <Fragment><path d="M15 3h6v6" /><path d="M10 14L21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></Fragment>,
+  clock: <Fragment><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></Fragment>,
   logout: <Fragment><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></Fragment>,
   lock: <Fragment><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></Fragment>,
   power: <Fragment><path d="M12 2v10" /><path d="M18.4 6.6a9 9 0 1 1-12.8 0" /></Fragment>,

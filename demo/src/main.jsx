@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'preact/hooks';
 import {
   AppShell, PageHeader, PageTabs, Card, TabbedCard, InfoTile, TILE, Button, StatusBadge, ToggleSwitch,
   Segmented, Modal, CopyField, Loading, Empty, Notice, ProgressBar, Credits, Icon, IconTile, ICONS,
-  ContextMenu, StatsWidget, formatBytes, useNoBrowserMenu, useVisiblePoll,
+  ContextMenu, StatsWidget, formatBytes, useNoBrowserMenu, useVisiblePoll, TimePicker,
   inputClass, labelClass, hintClass, useTheme, storeValue,
 } from '../../src/index';
 import * as R from './random';
@@ -255,6 +255,14 @@ const Components = () => {
 const Forms = () => {
   const [opts, setOpts] = useState(() => R.settings(4));
   const [name, setName] = useState(R.person);
+  const [from, setFrom] = useState('08:30');
+  const [until, setUntil] = useState('');
+  // For the renders: &open=time opens the first time picker.
+  useEffect(() => {
+    if (params.get('open') !== 'time') return undefined;
+    const t = setTimeout(() => document.querySelector('button[aria-label="Starts at"]')?.click(), 50);
+    return () => clearTimeout(t);
+  }, []);
   return (
     <div className="space-y-6">
       <PageHeader icon="settings" title="Forms & settings" subtitle="Fields, switches and values to copy" warning="Changes here apply as soon as you flip them." />
@@ -280,6 +288,21 @@ const Forms = () => {
             <div className="flex justify-end gap-2 pt-1">
               <Button variant="secondary">Cancel</Button>
               <Button>Save</Button>
+            </div>
+          </div>
+        </Card>
+
+        <Card title="TimePicker" subtitle="A time of day on two wheels to spin" icon="clock">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className={labelClass}>Starts at</label>
+              <TimePicker value={from} onChange={setFrom} label="Starts at" />
+              <p className={hintClass}>In steps of 5 minutes.</p>
+            </div>
+            <div>
+              <label className={labelClass}>Ends at</label>
+              <TimePicker value={until} onChange={setUntil} step={15} start="17:00" label="Ends at" />
+              <p className={hintClass}>In steps of 15 minutes, starting at 17:00.</p>
             </div>
           </div>
         </Card>

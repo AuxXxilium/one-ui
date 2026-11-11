@@ -41,6 +41,8 @@ const SHOTS = [
   ['overview-glass-dark', 'index.html', 'page=overview&dark=1&accent=amber&glass=1&widget=0'],
   ['components-amber', 'index.html', 'page=components&dark=0&accent=amber&glass=0&widget=0'],
   ['forms-dark-green', 'index.html', 'page=forms&dark=1&accent=green&glass=0&widget=0'],
+  ['time-picker', 'index.html', 'page=forms&dark=0&accent=blue&glass=1&widget=0&open=time', { tall: false }],
+  ['time-picker-phone', 'index.html', 'page=forms&dark=1&accent=amber&glass=0&widget=0&open=time', { width: 390, height: 844, scale: 2, tall: false }],
   ['tables-graphite', 'index.html', 'page=tables&dark=0&accent=graphite&glass=0&widget=0'],
   ['dialog-confirm', 'index.html', 'page=dialogs&dark=0&accent=red&glass=0&modal=confirm&widget=0', { tall: false }],
   ['dialogs-dark', 'index.html', 'page=dialogs&dark=1&accent=blue&glass=1&widget=0'],

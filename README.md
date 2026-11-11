@@ -423,6 +423,30 @@ You can also write `class="field"` instead of `inputClass`; it looks the same. C
 
 `copyText('…')` is the same copying on its own, for your own buttons.
 
+### TimePicker
+
+**A time of day, picked on two wheels.** The field opens a small panel (on a phone, a sheet from the bottom) with hour and minute wheels that spin like the reels of a slot machine: they run round endlessly (after 23 comes 00), snap to a value and can be swiped, scrolled with the mouse wheel, tapped or moved with the arrow keys. A time can also be typed (`730`, `7:30`, `07.30` or `7`, then Enter), and **Now** takes the current time.
+
+```jsx
+const [start, setStart] = useState('08:30');
+
+<TimePicker value={start} onChange={setStart} label="Starts at" />
+<TimePicker value={end} onChange={setEnd} step={15} start="17:00" label="Ends at" />
+```
+
+| Option | Meaning |
+|---|---|
+| `value`, `onChange` | The time as `'HH:MM'` (24 hours), or `''` for none. |
+| `step` | Minutes per step of the minute wheel: 1, 5 (the default), 10, 15, 20 or 30. |
+| `start` | The time the wheels show while none is set. `'07:00'` by default. |
+| `clearable` | A **Clear** button while a time is set. On by default. |
+| `label` | The field's name for screen readers. |
+| `text` | The words in the panel, for an app in another language: `{ hour, minute, now, clear, done, type }`. |
+
+| Computer | Phone |
+|---|---|
+| ![The time picker](docs/renders/time-picker.png) | <img src="docs/renders/time-picker-phone.png" alt="The time picker on a phone" width="260"> |
+
 ### Modal
 
 **A dialog over the page.** Escape, the ✕ or a click outside closes it.
@@ -656,7 +680,7 @@ src/                  The preset (Preact + Tailwind)
   icons.jsx             the icons, Icon, IconTile, IconLabel
   components/           AppShell, Sidebar, AppearanceMenu, PageHeader, PageTabs, Card,
                         TabbedCard, Button, StatusBadge, ToggleSwitch, Segmented, Modal,
-                        CopyField, Feedback (Loading, Empty, Notice, ProgressBar),
+                        CopyField, TimePicker, Feedback (Loading, Empty, Notice, ProgressBar),
                         ContextMenu, StatsWidget, Credits
   index.js              everything, from one place: import { Card } from 'one-ui'
 plain/                The plain version

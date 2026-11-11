@@ -15,6 +15,7 @@ export { default as ToggleSwitch } from './components/ToggleSwitch';
 export { default as Segmented } from './components/Segmented';
 export { default as Modal } from './components/Modal';
 export { default as CopyField, copyText } from './components/CopyField';
+export { default as TimePicker } from './components/TimePicker';
 export { Loading, Empty, Notice, ProgressBar } from './components/Feedback';
 export { default as ContextMenu, useNoBrowserMenu } from './components/ContextMenu';
 export { default as StatsWidget, formatRate, formatBytes } from './components/StatsWidget';

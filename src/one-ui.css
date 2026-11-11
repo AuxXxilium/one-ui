@@ -136,6 +136,10 @@ body {
 html, body { overflow-x: clip; max-width: 100%; }
 main select { max-width: 100%; }
 
+/* Scroll areas without a visible bar (TimePicker's wheels). */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 /* Phones and tablets: Safari zooms into a field whose text is smaller than
    16 px when it gets the focus. At 16 px it does not, and pinch zoom still
    works (unlike maximum-scale=1). */
