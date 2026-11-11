@@ -3,8 +3,8 @@
 // credited wherever One UI is used: see NOTICE.
 
 export { default as AppShell } from './components/AppShell';
-export { default as Sidebar } from './components/Sidebar';
-export { default as AppearanceMenu } from './components/AppearanceMenu';
+export { default as Sidebar, NavBadges, badgesOf } from './components/Sidebar';
+export { default as AppearanceMenu, AppearancePanel } from './components/AppearanceMenu';
 export { default as PageHeader } from './components/PageHeader';
 export { default as PageTabs } from './components/PageTabs';
 export { default as Card, TILE, InfoTile } from './components/Card';

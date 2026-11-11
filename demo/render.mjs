@@ -55,7 +55,9 @@ const SHOTS = [
   ['widget-glass-dark', 'index.html', 'page=overview&dark=1&accent=amber&glass=1&widget=1', { tall: false, clip: CORNER }],
   ['icons', 'index.html', 'page=icons&dark=0&accent=blue&glass=0&widget=0'],
   ['about-dark', 'index.html', 'page=about&dark=1&accent=red&glass=0&widget=0'],
+  ['account-menu', 'index.html', 'page=about&dark=1&accent=blue&glass=1&widget=0&account=1&open=account', { tall: false }],
   ['phone', 'index.html', 'page=overview&dark=0&accent=blue&glass=0&widget=0', { width: 390, height: 844, scale: 2, tall: true }],
+  ['phone-menu', 'index.html', 'page=overview&dark=1&accent=blue&glass=1&widget=0&open=pages', { width: 390, height: 844, scale: 2, tall: false }],
   ['plain-light', 'plain.html', 'x=1', { plain: { dark: false, glass: false, accent: 'blue' } }],
   ['plain-dark-glass', 'plain.html', 'x=1', { plain: { dark: true, glass: true, accent: 'amber' } }],
 ];

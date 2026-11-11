@@ -15,20 +15,23 @@ import * as R from './random';
 // screenshots: ?page=overview&dark=1&accent=amber&glass=1&modal=confirm&seed=7
 // On the Menus page &menu=1 opens a card's "..." menu and &ctx=1 a card's
 // right-click menu; &widget=1 opens the host widget and &widget=0 leaves it
-// out.
+// out. &account=1 puts a signed-in user top right, the appearance choices in
+// their menu, and &open=account opens it; &open=pages opens the phone's page
+// menu.
 
 const params = new URLSearchParams(location.search);
 if (params.has('dark')) storeValue('darkMode', params.get('dark') === '1');
 if (params.has('accent')) storeValue('accentColor', params.get('accent'));
 if (params.has('glass')) storeValue('surfaceGlass', params.get('glass') === '1');
 
+// Some pages carry notification bubbles: a count, or several with a tone.
 const NAV = [
   { id: 'overview', label: 'Overview', icon: 'main' },
   { id: 'components', label: 'Buttons & badges', icon: 'addons', section: 'Elements' },
-  { id: 'forms', label: 'Forms & settings', icon: 'settings', section: 'Elements' },
-  { id: 'tables', label: 'Tables & lists', icon: 'list', section: 'Elements' },
+  { id: 'forms', label: 'Forms & settings', icon: 'settings', section: 'Elements', badge: { n: 1, tone: 'quiet', title: '1 draft saved' } },
+  { id: 'tables', label: 'Tables & lists', icon: 'list', section: 'Elements', badge: [{ n: 4, title: '4 tasks in progress' }, { n: 2, tone: 'success', title: '2 tasks done' }] },
   { id: 'menus', label: 'Menus', icon: 'menu', section: 'Elements' },
-  { id: 'dialogs', label: 'Dialogs & messages', icon: 'notifications', section: 'Elements' },
+  { id: 'dialogs', label: 'Dialogs & messages', icon: 'notifications', section: 'Elements', badge: { n: 3, tone: 'danger', title: '3 unread messages' } },
   { id: 'icons', label: 'Icons', icon: 'layers', section: 'Elements' },
   { id: 'about', label: 'About', icon: 'about', section: 'Help' },
   { id: 'plain', label: 'Plain HTML version', icon: 'file', section: 'Help', href: 'plain.html' },
@@ -607,12 +610,28 @@ const App = () => {
   useNoBrowserMenu();
   const [page, setPage] = useState(PAGES[params.get('page')] ? params.get('page') : 'overview');
   const Page = PAGES[page];
+  // For the renders: open the account menu or the phone's page menu.
+  useEffect(() => {
+    const open = params.get('open');
+    const label = open === 'account' ? 'Menu of' : open === 'pages' ? 'Open the menu' : null;
+    if (!label) return;
+    const t = setTimeout(() => document.querySelector(`button[aria-label^="${label}"]`)?.click(), 50);
+    return () => clearTimeout(t);
+  }, []);
   return (
     <AppShell
       logo={<span className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-400 to-blue-600 text-on-accent flex items-center justify-center font-bold">1</span>}
       title="One UI"
       subtitle={`A UI to rule them all · demo seed ${R.SEED}`}
       theme={theme}
+      account={params.get('account') === '1' ? {
+        name: 'Alex Morgan',
+        subtitle: 'Owner · alex@example.com',
+        items: [
+          { label: 'My profile', icon: 'user' },
+          { label: 'Sign out', icon: 'power', tone: 'danger' },
+        ],
+      } : undefined}
       nav={NAV}
       active={page}
       onSelect={setPage}

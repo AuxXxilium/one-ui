@@ -131,6 +131,22 @@ body {
   color: var(--color-text);
 }
 
+/* Phones: never wider than the screen. A page that is, even by a few pixels,
+   lets Safari pan sideways and then draws dialogs cut off. */
+html, body { overflow-x: clip; max-width: 100%; }
+main select { max-width: 100%; }
+
+/* Phones and tablets: Safari zooms into a field whose text is smaller than
+   16 px when it gets the focus. At 16 px it does not, and pinch zoom still
+   works (unlike maximum-scale=1). */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 @layer components {
   /* The ground behind the whole app: a near-white with two soft washes of the
      accent in opposite corners, so the white cards have something to lift

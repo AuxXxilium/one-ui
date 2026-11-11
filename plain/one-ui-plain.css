@@ -86,6 +86,10 @@
     -webkit-text-size-adjust: 100%;
 }
 
+/* Phones: never wider than the screen. A page that is, even by a few pixels,
+   lets Safari pan sideways and then draws dialogs cut off. */
+:where(html, body) { overflow-x: clip; max-width: 100%; }
+
 :where(body) {
     margin: 0;
     min-height: 100vh;
@@ -153,6 +157,13 @@
 :where(input, select, textarea):focus {
     outline: none;
     box-shadow: 0 0 0 2px rgb(var(--accent-500));
+}
+
+/* Phones and tablets: Safari zooms into a field whose text is smaller than
+   16 px when it gets the focus. At 16 px it does not, and pinch zoom still
+   works (unlike maximum-scale=1). */
+@media (pointer: coarse) {
+    :where(input:not([type=checkbox]):not([type=radio]):not([type=range]), select, textarea) { font-size: 16px; }
 }
 :where(input[type=checkbox], input[type=radio], input[type=range]) { accent-color: rgb(var(--accent-600)); }
 

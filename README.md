@@ -49,9 +49,9 @@ You don't have to write the credit yourself:
 | **Glass, light** | **Glass, dark, amber** |
 | ![Glass light](docs/renders/overview-glass-light.png) | ![Glass dark](docs/renders/overview-glass-dark.png) |
 
-It also works on a phone: the sidebar folds away behind the ☰ button, and wide tables scroll sideways inside their card.
+It also works on a phone. The whole page scrolls as one, so nothing hides behind the browser's toolbar, and the pages are in a compact menu that opens from a round button in the bottom right corner. That button shows how many notifications are waiting, in red when something needs attention. Wide tables scroll sideways inside their card, nothing makes the page wider than the screen, and typing into a field does not zoom in.
 
-<img src="docs/renders/phone.png" alt="The demo on a phone" width="260">
+<img src="docs/renders/phone.png" alt="The demo on a phone" width="260"> <img src="docs/renders/phone-menu.png" alt="The page menu on a phone" width="260">
 
 ---
 
@@ -122,7 +122,7 @@ Then write ordinary HTML with the classes listed under [Plain HTML](#plain-html-
 
 ## Light, dark, colour and glass
 
-The sun/moon button opens the **appearance menu**. It has three settings, and each one is remembered in the browser.
+The sun/moon button opens the **appearance menu**. It has three settings, and each one is remembered in the browser. In an app with sign-in, the same settings are in the account menu instead (see [AppShell](#appshell)).
 
 <img src="docs/renders/appearance-menu.png" alt="The appearance menu" width="720">
 
@@ -212,13 +212,28 @@ Each element below has a picture, what it is for, and the shortest code that use
 | `theme` | What `useTheme()` gives you. Adds the appearance menu. |
 | `nav`, `active`, `onSelect` | The pages in the sidebar, which one is open, and what to do when one is clicked. |
 | `actions` | Extra buttons in the title bar, next to the appearance menu. |
-| `credits` | The One UI credit at the bottom of the sidebar. On by default. Only turn it off if you show `<Credits />` somewhere else. |
+| `account` | Who is signed in: `{ name, subtitle, items }`. Adds a round button with their initials to the top right. Its menu shows the name, your `items` (`{ label, icon, onClick }`), and the appearance settings in place of the sun/moon button. Give the last item `tone: 'danger'`, such as Sign out, to set it apart in red at the bottom. |
+| `credits` | The One UI credit at the bottom of the sidebar, or at the bottom of the page on a phone. On by default. Only turn it off if you show `<Credits />` somewhere else. |
+
+On a computer or tablet the pages are in the sidebar and the page scrolls on its own beside it. On a phone (under 768 pixels wide) the whole page scrolls as one, and the pages are in a compact menu above a round button in the bottom right corner. The button sits below dialogs, so it never covers their buttons. The title bar and the bottom of the page leave room for the notch and the home bar.
+
+<img src="docs/renders/account-menu.png" alt="The account menu" width="720">
 
 ### Sidebar
 
 **The page list.** `AppShell` already includes it; use it on its own only if you build your own frame.
 
 Each page in the list is `{ id, label, icon }`. Add `section: 'Hardware'` to put it under a heading; headings fold away when clicked, and that is remembered. Add `href: 'https://…'` to make it a link that opens in a new tab (it gets a small ↗).
+
+Add `badge` to show **notification bubbles** after a page's name, in the sidebar and in the phone's page menu:
+
+```jsx
+{ id: 'inbox', label: 'Inbox', icon: 'notifications', badge: 3 }                              // one bubble in the accent colour
+{ id: 'alerts', label: 'Alerts', icon: 'warning', badge: { n: 2, tone: 'danger', title: '2 alerts' } }
+{ id: 'jobs', label: 'Jobs', icon: 'list', badge: [{ n: 4 }, { n: 1, tone: 'success' }] }      // several side by side
+```
+
+The tones are the accent colour (no tone), `danger` (red, for something that needs attention), `success` (green) and `quiet` (grey, for something that is just busy). A count of 0 shows nothing. When the sidebar is narrowed to icons, a page with bubbles gets a dot on its icon instead: red, or the accent colour if all its bubbles are quiet. A folded section shows the dot next to its heading. On a phone, the round menu button adds up the bubbles: only the red ones while there are any (then it is red and pulses), otherwise all but the quiet ones.
 
 The current page is a white pill with a coloured bar on its left. The ☰ button shrinks the sidebar to icons only.
 

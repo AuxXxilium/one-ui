@@ -13,11 +13,42 @@ const loadCollapsed = (key) => {
   }
 };
 
+// A page's notification bubbles. `badge` on a nav item is a count, or
+// { n, tone?, title? }, or a list of them for several bubbles side by side
+// (say, fleets out and reports unread). Tones: none for the accent, 'danger'
+// (red) for what calls for attention, 'success' (green), and 'quiet' (grey)
+// for something merely at work - quiet ones put no count on the phone's
+// menu button. A count of 0 shows nothing.
+export const badgesOf = (item) => [].concat(item?.badge ?? []).map((b) => (typeof b === 'object' ? b : { n: b })).filter((b) => b && b.n);
+
+const PILL = {
+  danger: 'bg-red-500 text-white',
+  success: 'bg-emerald-600 text-white',
+  quiet: 'bg-gray-200 text-gray-600 dark:bg-white/15 dark:text-gray-300',
+};
+
+export const NavBadges = ({ item }) => {
+  const pills = badgesOf(item);
+  if (!pills.length) return null;
+  return (
+    <span className="flex items-center gap-1 shrink-0">
+      {pills.map((b, i) => (
+        <span key={i} title={b.title} className={`min-w-5 px-1.5 rounded-full text-[11px] leading-[18px] font-semibold text-center tabular-nums ${PILL[b.tone] || 'bg-blue-600 text-on-accent'}`}>
+          {b.n > 99 ? '99+' : b.n}
+        </span>
+      ))}
+    </span>
+  );
+};
+
 // The page list down the left.
 //
-// items: [{ id, label, icon, section?, href? }]. Items without a section come
-// first; the rest are grouped under their section's heading, which folds when
-// clicked. An item with href is a link out, and is never the current page.
+// items: [{ id, label, icon, section?, href?, badge? }]. Items without a
+// section come first; the rest are grouped under their section's heading,
+// which folds when clicked. An item with href is a link out, and is never the
+// current page. badge: its notification bubbles (see badgesOf); narrowed to
+// icons, a dot on the icon instead - red, or the accent when all are quiet.
+// A folded section shows the dot beside its count.
 //
 // open: full width with labels, or a narrow column of icons (and nothing at
 // all on a phone).
@@ -56,24 +87,31 @@ const Sidebar = ({ items, active, onSelect, open = true, storageKey = 'sidebarCo
       : 'hover:bg-white/60 dark:hover:bg-white/5'
   } ${open ? '' : 'justify-center'}`;
 
+  const dot = (pills) => (
+    <span className={`w-2.5 h-2.5 rounded-full ${pills.some((b) => b.tone !== 'quiet') ? 'bg-red-500' : 'bg-blue-500'}`} />
+  );
+
   const renderItem = (item) => {
     const isActive = !item.href && item.id === active;
+    const pills = badgesOf(item);
     const inner = (
       <Fragment>
         <span
-          className={`flex items-center justify-center shrink-0 w-8 h-8 transition-colors ${
+          className={`relative flex items-center justify-center shrink-0 w-8 h-8 transition-colors ${
             isActive
               ? 'text-blue-600 dark:text-blue-400'
               : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200'
           }`}
         >
           <Icon icon={item.icon} size={20} />
+          {!open && pills.length > 0 && <span className="absolute -top-0.5 -right-0.5 flex">{dot(pills)}</span>}
         </span>
         {open && (
           <span className="flex-1 flex items-center justify-between gap-2 min-w-0">
             <span className={`text-[15px] leading-tight truncate ${isActive ? 'font-semibold text-blue-700 dark:text-blue-300' : 'font-medium text-gray-700 dark:text-gray-200'}`}>
               {item.label}
             </span>
+            <NavBadges item={item} />
             {item.href && <span className="text-xs text-gray-400 dark:text-gray-500" aria-hidden="true">↗</span>}
           </span>
         )}
@@ -125,6 +163,7 @@ const Sidebar = ({ items, active, onSelect, open = true, storageKey = 'sidebarCo
                 >
                   <Icon icon="chevronDown" size={10} className={`shrink-0 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`} />
                   <span className="flex-1 text-left">{section}</span>
+                  {isCollapsed && sectionItems.some((item) => badgesOf(item).length) && dot(sectionItems.flatMap(badgesOf))}
                   {isCollapsed && (
                     <span className="text-[10px] font-normal normal-case tracking-normal">{sectionItems.length}</span>
                   )}

@@ -10,7 +10,8 @@ import { Icon } from '../icons';
 //
 // The buttons are wrapped in their own flex box: justify-between spreads every
 // direct child across the width, so two loose buttons would put one at the
-// right edge and strand the other in the middle.
+// right edge and strand the other in the middle. On a narrow screen they wrap
+// under the title, and among themselves, rather than make the page wider.
 const PageHeader = ({ tab, icon = tab?.icon, title = tab?.label, subtitle = tab?.subtitle, warning = tab?.warning, children }) => (
   <div className="flex flex-wrap items-center justify-between gap-4">
     <div className="flex items-center gap-4 min-w-0">
@@ -34,7 +35,7 @@ const PageHeader = ({ tab, icon = tab?.icon, title = tab?.label, subtitle = tab?
       </div>
     </div>
     {children && (
-      <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
+      <div className="flex flex-wrap items-center justify-end gap-2 min-w-0 max-w-full">
         {children}
       </div>
     )}
