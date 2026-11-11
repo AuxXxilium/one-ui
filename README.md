@@ -227,18 +227,19 @@ For an app people sign in to. The top right shows the user's initials on a colou
 - entries with `tone: 'danger'`, such as Sign out, last and in red.
 
 ```jsx
-<AppShell title="My App" theme={useTheme()} nav={NAV} active={page} onSelect={setPage}
-          account={{
-            name: 'Alex Morgan',
-            tag: 'Admin',
-            subtitle: 'alex@example.com',
-            extra: <ProgressBar value={0.34} />,
-            items: [
-              { label: 'My profile', icon: 'user', onClick: () => setPage('profile') },
-              { label: 'Change password', icon: 'lock', onClick: openPasswordDialog },
-              { label: 'Sign out', icon: 'logout', tone: 'danger', onClick: signOut },
-            ],
-          }}>
+const account = {
+  name: 'Alex Morgan',
+  tag: 'Admin',
+  subtitle: 'alex@example.com',
+  extra: <ProgressBar value={0.34} />,
+  items: [
+    { label: 'My profile', icon: 'user', onClick: () => setPage('profile') },
+    { label: 'Change password', icon: 'lock', onClick: openPasswordDialog },
+    { label: 'Sign out', icon: 'logout', tone: 'danger', onClick: signOut },
+  ],
+};
+
+<AppShell title="My App" theme={useTheme()} nav={NAV} active={page} onSelect={setPage} account={account}>
 ```
 
 Only `name` is needed. `initials` overrides the letters in the circle (normally the first letters of the first and last name) and `label` the button's name for screen readers ("Account").
