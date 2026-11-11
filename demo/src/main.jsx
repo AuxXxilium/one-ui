@@ -15,9 +15,10 @@ import * as R from './random';
 // screenshots: ?page=overview&dark=1&accent=amber&glass=1&modal=confirm&seed=7
 // On the Menus page &menu=1 opens a card's "..." menu and &ctx=1 a card's
 // right-click menu; &widget=1 opens the host widget and &widget=0 leaves it
-// out. &account=1 puts a signed-in user top right, the appearance choices in
-// their menu, and &open=account opens it; &open=pages opens the phone's page
-// menu.
+// out. A signed-in user's menu sits top right, holding the appearance
+// choices; &account=0 shows the plain sun/moon appearance menu instead.
+// &open=account opens the user's menu, &open=look its appearance choices, and
+// &open=pages the phone's page menu.
 
 const params = new URLSearchParams(location.search);
 if (params.has('dark')) storeValue('darkMode', params.get('dark') === '1');
@@ -601,6 +602,29 @@ const About = () => (
 
 // ---------------------------------------------------------------- app
 
+// The signed-in user, for the menu top right: a tag, a line about them and,
+// as `extra`, anything the app wants on their card - here the storage used.
+const ACCOUNT = {
+  name: 'Alex Morgan',
+  tag: 'Admin',
+  subtitle: 'alex@example.com',
+  extra: (
+    <div className="grid gap-1">
+      <div className="flex items-baseline justify-between text-xs text-gray-600 dark:text-gray-300">
+        <span>Storage</span>
+        <span className="tabular-nums text-gray-500 dark:text-gray-400">17 GB of 50 GB</span>
+      </div>
+      <ProgressBar value={0.34} tone="bg-blue-500" />
+    </div>
+  ),
+  items: [
+    { label: 'My profile', icon: 'user' },
+    { label: 'Change password', icon: 'lock' },
+    { label: 'About One UI', icon: 'info' },
+    { label: 'Sign out', icon: 'logout', tone: 'danger' },
+  ],
+};
+
 const PAGES = { overview: Overview, components: Components, forms: Forms, tables: Tables, menus: Menus, dialogs: Dialogs, icons: Icons, about: About };
 
 const App = () => {
@@ -613,9 +637,14 @@ const App = () => {
   // For the renders: open the account menu or the phone's page menu.
   useEffect(() => {
     const open = params.get('open');
-    const label = open === 'account' ? 'Menu of' : open === 'pages' ? 'Open the menu' : null;
-    if (!label) return;
-    const t = setTimeout(() => document.querySelector(`button[aria-label^="${label}"]`)?.click(), 50);
+    const label = open === 'account' || open === 'look' ? 'Account' : open === 'pages' ? 'Open the menu' : null;
+    if (!label) return undefined;
+    const t = setTimeout(() => {
+      document.querySelector(`button[aria-label="${label}"]`)?.click();
+      if (open === 'look') {
+        setTimeout(() => [...document.querySelectorAll('[role=menu] button')].find((b) => b.textContent.trim() === 'Appearance')?.click(), 50);
+      }
+    }, 50);
     return () => clearTimeout(t);
   }, []);
   return (
@@ -624,14 +653,7 @@ const App = () => {
       title="One UI"
       subtitle={`A UI to rule them all · demo seed ${R.SEED}`}
       theme={theme}
-      account={params.get('account') === '1' ? {
-        name: 'Alex Morgan',
-        subtitle: 'Owner · alex@example.com',
-        items: [
-          { label: 'My profile', icon: 'user' },
-          { label: 'Sign out', icon: 'power', tone: 'danger' },
-        ],
-      } : undefined}
+      account={params.get('account') === '0' ? undefined : ACCOUNT}
       nav={NAV}
       active={page}
       onSelect={setPage}

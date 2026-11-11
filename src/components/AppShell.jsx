@@ -2,6 +2,7 @@ import { h, Fragment } from 'preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
 import Sidebar, { NavBadges, badgesOf } from './Sidebar';
 import AppearanceMenu, { AppearancePanel } from './AppearanceMenu';
+import { ACCENT_PRESETS, swatchOf } from '../theme';
 import Credits from './Credits';
 import { Icon } from '../icons';
 
@@ -43,55 +44,100 @@ const initials = (name) => {
   return ((p.length > 1 ? p[0][0] + p[p.length - 1][0] : p[0].slice(0, 2)) || '?').toUpperCase();
 };
 
-const menuRow = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-[15px] transition-colors';
+const avatar = 'shrink-0 rounded-full bg-linear-to-br from-blue-400 to-blue-600 text-on-accent font-bold flex items-center justify-center';
 
-// The round button with the user's initials, top right, and its menu: who is
-// signed in, the app's own entries (profile, sign out ...) and, with a
-// theme, the appearance choices - one menu instead of two buttons.
+const MenuItem = ({ icon, tone, onClick, children }) => (
+  <button
+    type="button"
+    role="menuitem"
+    onClick={onClick}
+    className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-sm text-left transition-colors ${
+      tone === 'danger' ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30' : 'text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10'
+    }`}
+  >
+    {icon && <Icon icon={icon} size={16} className={tone === 'danger' ? '' : 'text-gray-500 dark:text-gray-400'} />}
+    {children}
+  </button>
+);
+
+// The user's menu, top right: their initials on an accent disc with the name
+// and a chevron beside it (only the disc on a phone). It opens on a card of
+// who is signed in - the disc, name, a tag such as Admin, a subtitle and
+// anything the app adds (a level, a quota) - then, with a theme, an
+// Appearance row that turns the menu into the appearance choices and back,
+// then the app's own entries. Entries with tone 'danger' (Sign out) come
+// last, set apart in red.
 const AccountMenu = ({ account, theme }) => {
   const [open, setOpen] = useState(false);
+  const [view, setView] = useState('main'); // 'main', or 'look' for the appearance choices
   const wrap = useRef(null);
   useDismiss(open, setOpen, [wrap]);
   const items = account.items || [];
-  const last = items.length && items[items.length - 1].tone === 'danger' ? items[items.length - 1] : null;
-  const row = (it) => (
-    <button
-      key={it.label}
-      type="button"
-      role="menuitem"
-      onClick={() => { setOpen(false); if (it.onClick) it.onClick(); }}
-      className={`${menuRow} ${it.tone === 'danger' ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20' : 'hover:bg-black/5 dark:hover:bg-white/10'}`}
-    >
-      {it.icon && <Icon icon={it.icon} size={18} className={it.tone === 'danger' ? '' : 'text-gray-500 dark:text-gray-400'} />}
-      {it.label}
-    </button>
-  );
+  const plain = items.filter((it) => it.tone !== 'danger');
+  const danger = items.filter((it) => it.tone === 'danger');
+  const letters = account.initials || initials(account.name);
+  const swatch = theme && (theme.presets || ACCENT_PRESETS).find((p) => p.id === theme.accent);
+  const pick = (it) => () => { setOpen(false); if (it.onClick) it.onClick(); };
+  const rule = <div className="my-1.5 border-t border-black/5 dark:border-white/10" />;
   return (
-    <div className="relative" ref={wrap}>
+    <div className="relative shrink-0" ref={wrap}>
       <button
         type="button"
-        onClick={() => setOpen(!open)}
+        onClick={() => { setView('main'); setOpen(!open); }}
         aria-haspopup="true"
         aria-expanded={open}
-        aria-label={account.label || `Menu of ${account.name}`}
-        title={account.name}
-        className="w-10 h-10 rounded-full bg-blue-500 text-on-accent font-semibold text-sm flex items-center justify-center shadow-md ring-2 ring-white/60 dark:ring-black/30 active:scale-95 transition-transform"
+        aria-label={account.label || 'Account'}
+        className="flex items-center gap-2 pl-1 pr-1 sm:pr-2 py-1 rounded-xl hover:bg-white/70 dark:hover:bg-white/10 transition-colors"
       >
-        {account.initials || initials(account.name)}
+        <span className={`${avatar} w-8 h-8 text-xs`}>{letters}</span>
+        <span className="hidden sm:block text-sm font-medium text-gray-800 dark:text-white max-w-32 truncate">{account.name}</span>
+        <Icon icon="chevronDown" size={14} className="hidden sm:block text-gray-400 shrink-0" />
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-2xl panel panel-menu shadow-xl ring-1 ring-black/5 dark:ring-white/10 p-2 z-40" role="menu">
-          <div className="px-3 pt-2 pb-3 border-b border-black/5 dark:border-white/10 mb-1">
-            <div className="font-semibold truncate text-gray-900 dark:text-white">{account.name}</div>
-            {account.subtitle && <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{account.subtitle}</div>}
-          </div>
-          {items.filter((it) => it !== last).map(row)}
-          {theme && (
-            <div className="px-3 py-2 grid gap-1.5">
-              <AppearancePanel {...theme} />
+        <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl panel panel-menu shadow-xl ring-1 ring-black/5 dark:ring-white/10 p-1.5 z-40" role="menu">
+          <div className="p-2.5 mb-1.5 rounded-lg bg-linear-to-br from-blue-500/15 to-transparent dark:from-blue-400/15">
+            <div className="flex items-center gap-3">
+              <span className={`${avatar} w-10 h-10 text-sm shadow-sm`}>{letters}</span>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{account.name}</div>
+                {(account.tag || account.subtitle) && (
+                  <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 min-w-0">
+                    {account.tag && <span className="shrink-0 px-1.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10px] font-semibold uppercase tracking-wide">{account.tag}</span>}
+                    {account.subtitle && <span className="truncate">{account.subtitle}</span>}
+                  </div>
+                )}
+              </div>
             </div>
+            {account.extra && <div className="mt-3">{account.extra}</div>}
+          </div>
+          {view === 'look' && theme ? (
+            <div className="grid gap-1.5" role="group" aria-label="Appearance">
+              <button
+                type="button"
+                onClick={() => setView('main')}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm font-semibold text-left text-gray-800 dark:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              >
+                <Icon icon="chevronLeft" size={16} className="text-gray-400" />Appearance
+              </button>
+              <div className="px-2.5 pb-1 grid gap-1.5">
+                <AppearancePanel {...theme} />
+              </div>
+            </div>
+          ) : (
+            <Fragment>
+              {theme && (
+                <MenuItem icon={theme.dark ? 'moon' : 'sun'} onClick={() => setView('look')}>
+                  <span className="flex-1">Appearance</span>
+                  {swatch && <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: swatchOf(swatch) }} />}
+                  <Icon icon="chevronRight" size={14} className="text-gray-400" />
+                </MenuItem>
+              )}
+              {theme && plain.length > 0 && rule}
+              {plain.map((it) => <MenuItem key={it.label} icon={it.icon} onClick={pick(it)}>{it.label}</MenuItem>)}
+              {danger.length > 0 && (theme || plain.length > 0) && rule}
+              {danger.map((it) => <MenuItem key={it.label} icon={it.icon} tone="danger" onClick={pick(it)}>{it.label}</MenuItem>)}
+            </Fragment>
           )}
-          {last && <div className="border-t border-black/5 dark:border-white/10 mt-1 pt-1">{row(last)}</div>}
         </div>
       )}
     </div>
@@ -209,12 +255,11 @@ const MenuButton = ({ nav, open, onClick, buttonRef }) => {
 //                           URL or anything to render)
 //   actions                 extra buttons beside the appearance menu
 //   theme                   what useTheme returns; adds the appearance menu
-//   account                 { name, subtitle?, initials?, label?, items }: a
-//                           round button with the initials, its menu holding
-//                           items ([{ label, icon?, onClick, tone? }], a last
-//                           one with tone 'danger' set apart, for signing
-//                           out) and the appearance choices in place of the
-//                           separate appearance menu
+//   account                 the user's menu top right, in place of the
+//                           separate appearance menu (see AccountMenu):
+//                           { name, subtitle?, tag?, extra?, initials?,
+//                           label?, items: [{ label, icon?, onClick,
+//                           tone? }] } - tone 'danger' for Sign out
 //   nav, active, onSelect   the Sidebar's items (with their badge bubbles)
 //                           and the current page
 //   credits                 the One UI credit at the foot of the sidebar, or

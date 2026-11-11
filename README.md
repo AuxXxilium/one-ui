@@ -122,7 +122,7 @@ Then write ordinary HTML with the classes listed under [Plain HTML](#plain-html-
 
 ## Light, dark, colour and glass
 
-The sun/moon button opens the **appearance menu**. It has three settings, and each one is remembered in the browser. In an app with sign-in, the same settings are in the account menu instead (see [AppShell](#appshell)).
+The sun/moon button opens the **appearance menu**. It has three settings, and each one is remembered in the browser. In an app with sign-in, the same settings are in the user menu instead (see [User menu](#user-menu)).
 
 <img src="docs/renders/appearance-menu.png" alt="The appearance menu" width="720">
 
@@ -212,12 +212,40 @@ Each element below has a picture, what it is for, and the shortest code that use
 | `theme` | What `useTheme()` gives you. Adds the appearance menu. |
 | `nav`, `active`, `onSelect` | The pages in the sidebar, which one is open, and what to do when one is clicked. |
 | `actions` | Extra buttons in the title bar, next to the appearance menu. |
-| `account` | Who is signed in: `{ name, subtitle, items }`. Adds a round button with their initials to the top right. Its menu shows the name, your `items` (`{ label, icon, onClick }`), and the appearance settings in place of the sun/moon button. Give the last item `tone: 'danger'`, such as Sign out, to set it apart in red at the bottom. |
+| `account` | Who is signed in. Adds the **user menu** to the top right, in place of the sun/moon button; see [User menu](#user-menu) below. |
 | `credits` | The One UI credit at the bottom of the sidebar, or at the bottom of the page on a phone. On by default. Only turn it off if you show `<Credits />` somewhere else. |
 
 On a computer or tablet the pages are in the sidebar and the page scrolls on its own beside it. On a phone (under 768 pixels wide) the whole page scrolls as one, and the pages are in a compact menu above a round button in the bottom right corner. The button sits below dialogs, so it never covers their buttons. The title bar and the bottom of the page leave room for the notch and the home bar.
 
-<img src="docs/renders/account-menu.png" alt="The account menu" width="720">
+#### User menu
+
+For an app people sign in to. The top right shows the user's initials on a coloured circle, with their name and a small arrow beside it (only the circle on a phone). Clicking it opens:
+
+- a card with the circle, the name, a `tag` (such as Admin), a `subtitle` (such as the e-mail address) and, as `extra`, anything else you want there, such as a level or how much storage is used,
+- **Appearance**, showing the colour in use. It turns the menu into the light/dark, solid/glass and colour settings, with a ‹ back to the menu,
+- your own entries, each `{ label, icon, onClick }`,
+- entries with `tone: 'danger'`, such as Sign out, last and in red.
+
+```jsx
+<AppShell title="My App" theme={useTheme()} nav={NAV} active={page} onSelect={setPage}
+          account={{
+            name: 'Alex Morgan',
+            tag: 'Admin',
+            subtitle: 'alex@example.com',
+            extra: <ProgressBar value={0.34} />,
+            items: [
+              { label: 'My profile', icon: 'user', onClick: () => setPage('profile') },
+              { label: 'Change password', icon: 'lock', onClick: openPasswordDialog },
+              { label: 'Sign out', icon: 'logout', tone: 'danger', onClick: signOut },
+            ],
+          }}>
+```
+
+Only `name` is needed. `initials` overrides the letters in the circle (normally the first letters of the first and last name) and `label` the button's name for screen readers ("Account").
+
+| The menu | Appearance, from the menu | Dark, amber |
+|---|---|---|
+| ![The user menu](docs/renders/account-menu.png) | ![Appearance in the user menu](docs/renders/account-appearance.png) | ![The user menu, dark](docs/renders/account-menu-dark.png) |
 
 ### Sidebar
 
