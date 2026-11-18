@@ -114,7 +114,11 @@ const Modal = ({
           </button>
         </div>
 
-        <div className="px-5 py-4 max-h-[75vh] overflow-y-auto">
+        {/* The body scrolls on its own - unless what it holds already has a
+            list that scrolls (a file picker, search results): then the body
+            grows to fit and only the list scrolls, rather than one scrollbar
+            beside another. Every dialog gets this; none needs to be told. */}
+        <div className="px-5 py-4 max-h-[75vh] overflow-y-auto has-[.overflow-y-auto]:max-h-none has-[.overflow-y-auto]:overflow-visible has-[.overflow-auto]:max-h-none has-[.overflow-auto]:overflow-visible">
           {children || (message && <p className="text-sm text-gray-700 dark:text-gray-300">{message}</p>)}
         </div>
 

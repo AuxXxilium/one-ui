@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>One UI plain</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%232563eb%27/%3E%3Ctext x=%2716%27 y=%2723%27 font-family=%27sans-serif%27 font-size=%2720%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3E1%3C/text%3E%3C/svg%3E">
-    <link rel="stylesheet" href="../plain/one-ui-plain.css?v=6732e146">
-    <script src="../plain/one-ui-plain.js?v=62b1679e"></script>
+    <link rel="stylesheet" href="../plain/one-ui-plain.css?v=705215a0">
+    <script src="../plain/one-ui-plain.js?v=eb4923ed"></script>
 </head>
 <body>
 <div class="oui-page oui-stack">
@@ -64,12 +64,17 @@
                     <span>Email me about new orders</span>
                     <input type="checkbox" class="oui-switch" checked aria-label="Email me about new orders">
                 </div>
+                <div class="oui-row">
+                    <label class="oui-row" style="gap: 0.5rem; margin: 0; font-size: 0.875rem; font-weight: 400"><input type="checkbox" checked> Card</label>
+                    <label class="oui-row" style="gap: 0.5rem; margin: 0; font-size: 0.875rem; font-weight: 400"><input type="checkbox" checked> PayPal</label>
+                    <label class="oui-row" style="gap: 0.5rem; margin: 0; font-size: 0.875rem; font-weight: 400"><input type="checkbox"> Invoice</label>
+                </div>
                 <div>
                     <div class="oui-row" style="justify-content: space-between"><span class="oui-small">Monthly goal</span><span class="oui-small oui-muted" id="pct"></span></div>
                     <div class="oui-progress"><span id="bar"></span></div>
                 </div>
                 <div class="oui-row">
-                    <button class="oui-btn oui-btn-primary">Save</button>
+                    <button class="oui-btn oui-btn-primary" onclick="OneUI.toast('Saved.')">Save</button>
                     <button class="oui-btn oui-btn-outline">Preview</button>
                     <button class="oui-btn oui-btn-danger">Reset</button>
                 </div>
@@ -87,6 +92,7 @@
                     <span class="oui-badge oui-badge-warning">Pending</span>
                     <span class="oui-badge oui-badge-error">Refunded</span>
                     <span class="oui-badge oui-badge-info">New</span>
+                    <span class="oui-chips"><span class="oui-badge oui-badge-success">113 paid</span><span class="oui-badge">9 open</span></span>
                 </div>
             </div>
         </section>

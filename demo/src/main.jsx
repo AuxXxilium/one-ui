@@ -3,10 +3,12 @@ import { useState, useEffect, useRef } from 'preact/hooks';
 import {
   AppShell, PageHeader, PageTabs, Card, TabbedCard, InfoTile, TILE, Button, StatusBadge, ToggleSwitch,
   Segmented, Modal, CopyField, Loading, Empty, Notice, ProgressBar, Credits, Icon, IconTile, ICONS,
-  ContextMenu, StatsWidget, formatBytes, useNoBrowserMenu, useVisiblePoll, TimePicker,
+  ContextMenu, MenuButton, StatsWidget, formatBytes, useNoBrowserMenu, useVisiblePoll, TimePicker,
+  Chips, Ring, AutoRefresh, useAutoRefresh, toast, useNotice, openMedia,
   inputClass, labelClass, hintClass, useTheme, storeValue,
 } from '../../src/index';
 import * as R from './random';
+import { mediaFolder } from './media';
 
 // A gallery of every One UI element, filled with made-up sample content: a
 // team workspace with projects, tasks, files and people.
@@ -18,7 +20,10 @@ import * as R from './random';
 // out. A signed-in user's menu sits top right, holding the appearance
 // choices; &account=0 shows the plain sun/moon appearance menu instead.
 // &open=account opens the user's menu, &open=look its appearance choices, and
-// &open=pages the phone's page menu.
+// &open=pages the phone's page menu. &sub=1 with &menu=1 opens the card
+// menu's "Move to" submenu; &toast=1 shows a toast, &help=1 the Overview's
+// help; &media=image opens the lightbox and &media=audio the music player
+// (on the Tables page, Pictures & music), and &rowmenu=1 a file's "..." menu.
 
 const params = new URLSearchParams(location.search);
 if (params.has('dark')) storeValue('darkMode', params.get('dark') === '1');
@@ -62,14 +67,28 @@ const Overview = () => {
   const [todo] = useState(() => R.tasks(5));
   const [log] = useState(() => R.events(5));
   const [view, setView] = useState('details');
+  const [live, setLive] = useAutoRefresh('overview');
+  const [busy, setBusy] = useState(false);
+  const [help, setHelp] = useState(params.get('help') === '1');
   const away = people.filter((p) => p.status !== 'success').length;
+  // A pretend reload, so the arrows have something to turn for.
+  const refresh = () => {
+    setBusy(true);
+    setTimeout(() => { setBusy(false); toast('Up to date.'); }, 700);
+  };
 
   return (
     <div className="space-y-6">
-      <PageHeader icon="main" title="Overview" subtitle={`${ws.name} · ${ws.members} members · started ${ws.created}`}>
-        <Button variant="outline" icon="refresh">Refresh</Button>
+      <PageHeader icon="main" title="Overview" subtitle={`${ws.name} · ${ws.members} members · started ${ws.created}`} onHelp={() => setHelp(true)}>
+        <AutoRefresh on={live} onChange={setLive} onRefresh={refresh} busy={busy} every={30} />
         <Button icon="plus">New task</Button>
       </PageHeader>
+      <Modal isOpen={help} onClose={() => setHelp(false)} title="About this page" size="sm">
+        <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+          <p>The overview shows how {ws.name} stands: progress, budget, storage and how the team feels about it.</p>
+          <p>With Auto-refresh on, the figures are read again every 30 seconds while the page is open. Off, they stay as they are until you press Refresh.</p>
+        </div>
+      </Modal>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Meter label="Progress" value={ws.progress} detail={`${R.int(10, 60)} of ${R.int(61, 90)} tasks done`} color="bg-blue-500" />
@@ -208,6 +227,38 @@ const Components = () => {
           </div>
         </Example>
 
+        <Example title="Chips" subtitle="Figures as badges; one thing's figures joined in one pill" icon="tag">
+          <div className="space-y-3">
+            <Chips items={[
+              { label: `${R.int(3, 9)} online`, status: 'success' },
+              { label: `${R.int(1, 3)} away`, status: 'warning' },
+              { label: `${R.int(1, 4)} offline` },
+              { label: 'Admin', tone: 'bg-violet-100 text-violet-800 dark:bg-violet-500/20 dark:text-violet-300' },
+            ]} />
+            <div className="flex flex-wrap items-center gap-2">
+              <Chips joined items={[
+                { label: `${R.int(4, 30)} GB free`, status: 'success' },
+                { label: '50 GB in all' },
+              ]} />
+              <Chips joined items={[
+                { label: `${(R.rand() * 9 + 1).toFixed(1)} MB/s`, icon: 'arrowUp', flip: true, status: 'info', title: 'Download' },
+                { label: `${R.int(80, 900)} KB/s`, icon: 'arrowUp', status: 'info', title: 'Upload' },
+              ]} />
+              <Chips joined items={[{ label: 'USB' }, { label: 'xhci_hcd', mono: true }]} />
+            </div>
+          </div>
+        </Example>
+
+        <Example title="Ring" subtitle="A share of a whole, as a dial" icon="gauge">
+          <div className="flex flex-wrap items-start gap-6">
+            <Ring label="Storage" pct={R.int(20, 60)} />
+            <Ring label="Budget" pct={R.int(72, 88)} />
+            <Ring label="Seats" pct={R.int(91, 99)} />
+            <Ring label="Not measured" pct={null} />
+            <Ring label="Cores given" pct={R.int(110, 160)} tone="text-blue-500" sub="of 16" size={64} />
+          </div>
+        </Example>
+
         <Example title="Segmented" subtitle="Pick one view out of a few" icon="fader">
           <Segmented
             value={seg}
@@ -255,6 +306,11 @@ const Components = () => {
 const Forms = () => {
   const [opts, setOpts] = useState(() => R.settings(4));
   const [name, setName] = useState(R.person);
+  const [compact, setCompact] = useState(true);
+  const [people] = useState(() => R.team(4));
+  const [picked, setPicked] = useState(() => [0, 2]);
+  const [notify, setNotify] = useState('mentions');
+  const [error, setNotice] = useNotice();
   const [from, setFrom] = useState('08:30');
   const [until, setUntil] = useState('');
   // For the renders: &open=time opens the first time picker.
@@ -285,9 +341,11 @@ const Forms = () => {
             <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
               <input type="checkbox" checked /> Send me an email when a task is done
             </label>
+            {error && <Notice tone="error">{error.text}</Notice>}
             <div className="flex justify-end gap-2 pt-1">
-              <Button variant="secondary">Cancel</Button>
-              <Button>Save</Button>
+              <Button variant="secondary" onClick={() => setNotice('')}>Cancel</Button>
+              {/* A confirmation is a toast; an error stays on the page. */}
+              <Button onClick={() => setNotice(name.trim() ? 'Saved.' : { ok: false, text: 'A display name is needed.' })}>Save</Button>
             </div>
           </div>
         </Card>
@@ -322,6 +380,44 @@ const Forms = () => {
                 />
               </div>
             ))}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2">
+              <ToggleSwitch checked={compact} onChange={setCompact}>Compact rows</ToggleSwitch>
+              <ToggleSwitch size="sm" checked={!compact} onChange={(on) => setCompact(!on)}>Small, for a toolbar</ToggleSwitch>
+            </div>
+          </div>
+        </Card>
+
+        <Card title="Checkboxes and radios" subtitle="Picking from a list; one choice of a few" icon="check">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <div className={labelClass}>Who can edit</div>
+              <div className="space-y-1.5 mt-1">
+                {people.map((p, i) => (
+                  <label key={p.name} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={picked.includes(i)}
+                      onChange={(e) => setPicked(e.currentTarget.checked ? [...picked, i] : picked.filter((x) => x !== i))}
+                    />
+                    {p.name}
+                  </label>
+                ))}
+                <label className="flex items-center gap-2 text-sm text-gray-400 dark:text-gray-500">
+                  <input type="checkbox" disabled checked /> Owners, always
+                </label>
+              </div>
+            </div>
+            <div>
+              <div className={labelClass}>Notify me about</div>
+              <div className="space-y-1.5 mt-1">
+                {[['all', 'Everything'], ['mentions', 'Mentions only'], ['none', 'Nothing']].map(([id, text]) => (
+                  <label key={id} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                    <input type="radio" name="notify" checked={notify === id} onChange={() => setNotify(id)} />
+                    {text}
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
         </Card>
 
@@ -336,30 +432,107 @@ const Forms = () => {
   );
 };
 
+const FOLDERS = ['Design', 'Finance', 'Marketing', 'Archive'];
+
+// A file's actions, for its "..." button: a ticked entry, a submenu and a
+// danger entry last.
+const fileItems = (f, starred, setStarred) => [
+  { label: 'Open', icon: 'external', onClick: () => toast(`Opened ${f.name}.`, 'info') },
+  { label: 'Starred', checked: starred.includes(f.name), onClick: () => setStarred(starred.includes(f.name) ? starred.filter((n) => n !== f.name) : [...starred, f.name]) },
+  { label: 'Move to', icon: 'swap', items: FOLDERS.map((d) => ({ label: d, onClick: () => toast(`Moved ${f.name} to ${d}.`) })) },
+  { label: 'Copy link', icon: 'link', onClick: () => toast('Link copied.') },
+  'separator',
+  { label: 'Delete', icon: 'trash', danger: true, onClick: () => toast(`${f.name} was deleted.`) },
+];
+
+// Pictures and music: a tile each. A picture opens the lightbox with the
+// folder's other pictures beside it; a piece of music starts the player, with
+// the rest of the folder's music queued after it.
+const MediaGrid = () => {
+  const [items] = useState(mediaFolder);
+  useEffect(() => {
+    const want = params.get('media');
+    if (!want) return;
+    const at = items.findIndex((x) => x.kind === want);
+    if (at >= 0) openMedia(items, at);
+  }, []);
+  return (
+    <Card title="Pictures & music" subtitle="Click one to open it" icon="image">
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 xl:grid-cols-8">
+        {items.map((it, i) => (
+          <button
+            key={it.name}
+            type="button"
+            onClick={() => openMedia(items, i)}
+            className={`${TILE} group overflow-hidden text-left focus:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500`}
+          >
+            {it.kind === 'image' ? (
+              <img src={it.url} alt="" className="aspect-[4/3] w-full object-cover group-hover:opacity-90 transition-opacity" />
+            ) : (
+              <span className="aspect-[4/3] w-full flex items-center justify-center bg-blue-600/10 text-blue-600 dark:text-blue-400">
+                <Icon icon="music" size={28} />
+              </span>
+            )}
+            <span className="block px-2 py-1.5 text-xs text-gray-700 dark:text-gray-300 truncate">{it.name}</span>
+          </button>
+        ))}
+      </div>
+    </Card>
+  );
+};
+
 const Tables = () => {
   const [list] = useState(() => R.files(7));
+  const [starred, setStarred] = useState([]);
+  const [view, setView] = useState(params.get('media') ? 'media' : 'files');
+  // For the renders: &rowmenu=1 opens the third file's "..." menu.
+  useEffect(() => {
+    if (params.get('rowmenu') !== '1') return undefined;
+    const t = setTimeout(() => document.querySelectorAll('td button[aria-haspopup]')[2]?.click(), 50);
+    return () => clearTimeout(t);
+  }, []);
   return (
     <div className="space-y-6">
-      <PageHeader icon="list" title="Tables & lists" subtitle="Rows of things, with a quiet header" />
+      <PageHeader
+        icon="list"
+        title="Tables & lists"
+        subtitle="Rows of things, with a quiet header"
+        tabs={(
+          <PageTabs
+            value={view}
+            onChange={setView}
+            items={[
+              { id: 'files', label: 'Files', icon: 'file', count: list.length },
+              { id: 'media', label: 'Pictures & music', icon: 'image' },
+            ]}
+          />
+        )}
+      />
+      {view === 'media' ? <MediaGrid /> : (
       <Card title="Files" subtitle={`${list.length} files`} icon="file" actions={<Button variant="outline" size="xs" icon="upload">Upload</Button>}>
         <table className="data-table w-full text-sm">
           <thead>
-            <tr><th>Name</th><th>Type</th><th className="text-right">Size</th><th>Owner</th><th>Modified</th><th>Status</th></tr>
+            <tr><th>Name</th><th>Type</th><th className="text-right">Size</th><th>Owner</th><th>Modified</th><th>Status</th><th /></tr>
           </thead>
           <tbody>
             {list.map((f) => (
               <tr key={f.name}>
-                <td className="font-medium text-gray-900 dark:text-white">{f.name}</td>
+                <td className="font-medium text-gray-900 dark:text-white">
+                  {f.name}
+                  {starred.includes(f.name) && <span className="ml-1.5 text-amber-500" title="Starred">★</span>}
+                </td>
                 <td className="text-gray-600 dark:text-gray-300">{f.type}</td>
                 <td className="text-right tabular-nums">{f.size}</td>
                 <td className="text-gray-600 dark:text-gray-300">{f.owner}</td>
                 <td className="text-gray-600 dark:text-gray-300 whitespace-nowrap">{f.modified}</td>
                 <td><StatusBadge status={f.status} label={f.statusLabel} /></td>
+                <td className="text-right"><MenuButton items={fileItems(f, starred, setStarred)} label={`Actions for ${f.name}`} className="inline-block" /></td>
               </tr>
             ))}
           </tbody>
         </table>
       </Card>
+      )}
       <div className="grid gap-6 xl:grid-cols-2">
         <Card title="Loading" subtitle="While something is on its way" icon="spinner">
           <Loading message="Loading files…" size={10} className="py-6" />
@@ -376,36 +549,41 @@ const MENU = [
   { label: 'Open', icon: 'external' },
   { label: 'Rename', icon: 'edit' },
   { label: 'Duplicate', icon: 'copy' },
+  { label: 'Pinned', checked: true },
+  { label: 'Move to', icon: 'swap', items: [
+    { label: 'Design', icon: 'layers' },
+    { label: 'Marketing', icon: 'layers' },
+    { label: 'Finance', icon: 'layers' },
+  ] },
   { label: 'Share link', icon: 'link' },
   { label: 'Archive', icon: 'package' },
   'separator',
   { label: 'Delete', icon: 'trash', danger: true },
 ];
 
-// A card's "..." menu, built the way the README says: panel panel-menu, so
-// under glass it is clearer than the cards it floats over, and rows that mark
-// hover and the divider with a tint. The button carries aria-expanded, which
-// is what lifts the card above the ones after it while the menu is open.
-// Right-clicking the card opens the same actions as a ContextMenu.
+// A card's "..." menu is a MenuButton with the same items as the card's
+// right-click menu. Its button carries aria-expanded, which is what lifts the
+// card above the ones after it under glass while the menu is open.
 const ProjectCard = ({ p, startOpen, onContextMenu }) => {
-  const [open, setOpen] = useState(startOpen);
   const ref = useRef(null);
-
+  // For the renders: open this card's menu, and with &sub=1 its submenu.
   useEffect(() => {
-    if (!open) return undefined;
-    const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
-    document.addEventListener('mousedown', onDown);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onDown);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
+    if (!startOpen) return undefined;
+    const t = setTimeout(() => {
+      ref.current?.querySelector('button[aria-haspopup]')?.click();
+      if (params.get('sub') === '1') {
+        setTimeout(() => {
+          const row = [...document.querySelectorAll('[role=menu] button')].find((b) => b.textContent.trim() === 'Move to');
+          row?.click();
+        }, 50);
+      }
+    }, 50);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
-    <Card overflow="visible" onContextMenu={onContextMenu}>
-      <div className="flex items-start justify-between gap-3">
+    <Card onContextMenu={onContextMenu}>
+      <div className="flex items-start justify-between gap-3" ref={ref}>
         <div className="flex items-center gap-3 min-w-0">
           <IconTile icon="layers" />
           <div className="min-w-0">
@@ -413,30 +591,7 @@ const ProjectCard = ({ p, startOpen, onContextMenu }) => {
             <div className="text-xs text-gray-500 dark:text-gray-400">{p.owner} · {p.members} members</div>
           </div>
         </div>
-        <div className="relative shrink-0" ref={ref}>
-          <Button variant="secondary" size="xs" icon="more" iconOnly aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
-            More actions
-          </Button>
-          {open && (
-            <div role="menu" className="absolute right-0 top-full mt-1 z-20 w-48 rounded-xl panel panel-menu shadow-xl ring-1 ring-black/5 dark:ring-white/10 p-1">
-              {MENU.map((item, i) => (item === 'separator' ? (
-                <div key={i} role="separator" className="my-1 mx-1.5 h-px bg-black/10 dark:bg-white/10" />
-              ) : (
-                <button
-                  key={item.label}
-                  type="button"
-                  role="menuitem"
-                  onClick={() => setOpen(false)}
-                  className={`flex w-full items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-sm text-left hover:bg-black/5 dark:hover:bg-white/10 ${
-                    item.danger ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-200'
-                  }`}
-                >
-                  <Icon icon={item.icon} size={16} />{item.label}
-                </button>
-              )))}
-            </div>
-          )}
-        </div>
+        <MenuButton items={MENU} label={`Actions for ${p.name}`} />
       </div>
       <div className="mt-4 space-y-1.5">
         <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
@@ -541,6 +696,13 @@ const Dialogs = ({ initial }) => {
   const [notes, setNotes] = useState(['info', 'success', 'warning', 'error']);
   const proj = `Project ${R.project()}`;
   const file = R.files(1)[0].name;
+  const [pickFrom] = useState(() => R.files(9).concat(R.files(9)).map((f, i) => `${i + 1}. ${f.name}`));
+  // For the renders: a toast as the page opens.
+  useEffect(() => {
+    if (params.get('toast') !== '1') return undefined;
+    const t = setTimeout(() => toast(`${file} was uploaded.`), 100);
+    return () => clearTimeout(t);
+  }, []);
   const texts = {
     info: `${R.person()} invited you to ${proj}.`,
     success: `${file} was uploaded.`,
@@ -555,6 +717,13 @@ const Dialogs = ({ initial }) => {
           <Button variant="secondary" onClick={() => setOpen('info')}>Open a dialog</Button>
           <Button variant="danger" onClick={() => setOpen('confirm')}>Ask to confirm</Button>
           <Button variant="success" onClick={() => setOpen('success')}>Show success</Button>
+          <Button variant="secondary" onClick={() => setOpen('list')}>A dialog with a list</Button>
+        </div>
+      </Card>
+      <Card title="Toast" subtitle="A short confirmation at the bottom middle, for three seconds" icon="check">
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => toast('Saved.')}>Save</Button>
+          <Button variant="secondary" onClick={() => toast(`${R.int(2, 9)} files synced.`, 'info')}>A neutral note</Button>
         </div>
       </Card>
       <Card title="Notice" subtitle="A message in a tinted box; can be closed" icon="info">
@@ -582,6 +751,24 @@ const Dialogs = ({ initial }) => {
         confirmVariant="danger"
         message={`${file} will be removed from ${proj} for good. Copies other people downloaded are not touched.`}
       />
+      {/* The list scrolls by itself, so the dialog's body grows to fit it
+          and there is one scrollbar, not one inside another. */}
+      <Modal
+        isOpen={open === 'list'}
+        onClose={() => setOpen(null)}
+        title="Pick a file"
+        onConfirm={() => { setOpen(null); toast('File attached.'); }}
+        confirmLabel="Attach"
+      >
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Files in {proj}:</p>
+        <div className="max-h-64 overflow-y-auto space-y-1 pr-1">
+          {pickFrom.map((n) => (
+            <label key={n} className={`${TILE} flex items-center gap-2 px-3 py-2 text-sm text-gray-800 dark:text-gray-200 cursor-pointer`}>
+              <input type="radio" name="pick" /> {n}
+            </label>
+          ))}
+        </div>
+      </Modal>
       <Modal isOpen={open === 'success'} onClose={() => setOpen(null)} type="success" title="Done" message="The file was deleted." />
     </div>
   );

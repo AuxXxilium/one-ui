@@ -8,6 +8,8 @@
     ".": "./src/index.js",
     "./theme": "./src/theme.js",
     "./styles": "./src/styles.js",
+    "./toast": "./src/toast.js",
+    "./media": "./src/media.js",
     "./icons": "./src/icons.jsx",
     "./one-ui.css": "./src/one-ui.css",
     "./plain/one-ui-plain.css": "./plain/one-ui-plain.css",

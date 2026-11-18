@@ -51,6 +51,14 @@ const SHOTS = [
   ['menus-glass-dark', 'index.html', 'page=menus&dark=1&accent=amber&glass=1&menu=1&widget=0', { tall: false }],
   ['context-menu-glass-light', 'index.html', 'page=menus&dark=0&accent=red&glass=1&ctx=1&widget=0', { tall: false }],
   ['context-menu-dark', 'index.html', 'page=menus&dark=1&accent=graphite&glass=0&ctx=1&widget=0', { tall: false }],
+  ['submenu-glass-dark', 'index.html', 'page=menus&dark=1&accent=blue&glass=1&menu=1&sub=1&widget=0', { tall: false }],
+  ['row-menu-light', 'index.html', 'page=tables&dark=0&accent=green&glass=0&widget=0&rowmenu=1', { tall: false }],
+  ['toast-glass-light', 'index.html', 'page=dialogs&dark=0&accent=blue&glass=1&toast=1&widget=0', { tall: false, wait: 300 }],
+  ['toast-dark', 'index.html', 'page=dialogs&dark=1&accent=amber&glass=0&toast=1&widget=0', { tall: false, wait: 300 }],
+  ['dialog-list', 'index.html', 'page=dialogs&dark=0&accent=blue&glass=0&modal=list&widget=0', { tall: false }],
+  ['page-help', 'index.html', 'page=overview&dark=0&accent=red&glass=0&help=1&widget=0', { tall: false }],
+  ['lightbox', 'index.html', 'page=tables&dark=0&accent=blue&glass=0&media=image&widget=0', { tall: false }],
+  ['music-player', 'index.html', 'page=tables&dark=1&accent=blue&glass=1&media=audio&widget=0', { tall: false }],
   ['widget-solid-light', 'index.html', 'page=overview&dark=0&accent=blue&glass=0&widget=1', { tall: false, clip: CORNER }],
   ['widget-solid-dark', 'index.html', 'page=overview&dark=1&accent=blue&glass=0&widget=1', { tall: false, clip: CORNER }],
   ['widget-glass-light', 'index.html', 'page=overview&dark=0&accent=blue&glass=1&widget=1', { tall: false, clip: CORNER }],
@@ -84,7 +92,7 @@ for (const [name, file, query, opt = {}] of SHOTS) {
   } else {
     await page.goto(url(file, query));
   }
-  await new Promise((r) => setTimeout(r, 400));
+  await new Promise((r) => setTimeout(r, 400 + (opt.wait || 0)));
 
   if (opt.menu) {
     await page.click('button[aria-label="Appearance"]');

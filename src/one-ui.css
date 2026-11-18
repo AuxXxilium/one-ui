@@ -349,18 +349,110 @@ main select { max-width: 100%; }
   }
 }
 
-/* Checkboxes and radios in the accent. Tailwind's text-blue-600 on a native
-   checkbox colours nothing; accent-color is what the browser paints. */
-input[type='checkbox'],
-input[type='radio'],
+/* Sliders in the accent. Tailwind's text-blue-600 on a native control colours
+   nothing; accent-color is what the browser paints. */
 input[type='range'] {
   accent-color: rgb(var(--accent-600));
 }
 
-.dark input[type='checkbox'],
-.dark input[type='radio'],
 .dark input[type='range'] {
   accent-color: rgb(var(--accent-500));
+}
+
+/* Checkboxes and radios, drawn by One UI rather than the browser, as
+   arc-control draws them. On/off settings are switches (ToggleSwitch); a tick
+   box is for picking items from a list, or confirming something was done.
+
+   The box wears what a text field wears: a light grey fill, gray-700 in dark
+   mode, a faint inset edge. Checked, a solid accent fill - 600 in light, 500
+   in dark - with the tick in the colour of text on the accent, so it turns
+   dark on amber like a primary button's label. The tick and dot are SVGs
+   theme.js builds from that colour (--accent-check, --accent-dot); the white
+   fallbacks cover the moment before it runs.
+
+   In the base layer, so a call site's mt-0.5 still wins. */
+@layer base {
+  input[type='checkbox'],
+  input[type='radio'] {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-block;
+    flex-shrink: 0;
+    vertical-align: middle;
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0.3rem;
+    background-color: rgb(228 228 231);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    box-shadow: inset 0 0 0 1.5px rgb(161 161 170 / 0.55);
+    color: inherit;
+    cursor: pointer;
+    transition: background-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  input[type='radio'] {
+    border-radius: 9999px;
+  }
+
+  input[type='checkbox']:hover:not(:disabled):not(:checked),
+  input[type='radio']:hover:not(:disabled):not(:checked) {
+    box-shadow: inset 0 0 0 1.5px rgb(var(--accent-500));
+  }
+
+  input[type='checkbox']:checked,
+  input[type='radio']:checked {
+    background-color: rgb(var(--accent-600));
+    box-shadow: none;
+  }
+
+  input[type='checkbox']:checked {
+    background-image: var(--accent-check, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.5l2.5 2.5 4.5-5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"));
+  }
+
+  input[type='radio']:checked {
+    background-image: var(--accent-dot, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3' fill='white'/%3E%3C/svg%3E"));
+  }
+
+  input[type='checkbox']:focus-visible,
+  input[type='radio']:focus-visible {
+    outline: 2px solid rgb(var(--accent-500));
+    outline-offset: 2px;
+  }
+
+  input[type='checkbox']:disabled,
+  input[type='radio']:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .dark input[type='checkbox'],
+  .dark input[type='radio'] {
+    background-color: rgb(63 63 70);
+    box-shadow: inset 0 0 0 1.5px rgb(113 113 122 / 0.6);
+  }
+
+  .dark input[type='checkbox']:hover:not(:disabled):not(:checked),
+  .dark input[type='radio']:hover:not(:disabled):not(:checked) {
+    box-shadow: inset 0 0 0 1.5px rgb(var(--accent-400));
+  }
+
+  .dark input[type='checkbox']:checked,
+  .dark input[type='radio']:checked {
+    background-color: rgb(var(--accent-500));
+    box-shadow: none;
+  }
+}
+
+/* A toast coming in from below (Toaster), and a picture coming in with it
+   (MediaViewer). */
+@keyframes oui-rise-in {
+  from { opacity: 0; transform: translateY(0.5rem); }
+  to { opacity: 1; transform: none; }
 }
 
 /* Thin scrollbars everywhere, in zinc, with no arrow buttons. */

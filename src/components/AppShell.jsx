@@ -4,6 +4,9 @@ import Sidebar, { NavBadges, badgesOf } from './Sidebar';
 import AppearanceMenu, { AppearancePanel } from './AppearanceMenu';
 import { ACCENT_PRESETS, swatchOf } from '../theme';
 import Credits from './Credits';
+import Toaster from './Toaster';
+import MediaViewer from './MediaViewer';
+import MiniPlayer from './MiniPlayer';
 import { Icon } from '../icons';
 
 const WIDE = '(min-width: 768px)';
@@ -265,7 +268,13 @@ const MenuButton = ({ nav, open, onClick, buttonRef }) => {
 //   credits                 the One UI credit at the foot of the sidebar, or
 //                           of the page on a phone; on by default, see
 //                           NOTICE before turning it off
-const AppShell = ({ logo, title, subtitle, actions, theme, account, nav = [], active, onSelect, credits = true, children }) => {
+//   overlays                the app-wide pieces every page reaches through a
+//                           function rather than markup: the toasts (toast()),
+//                           the lightbox and the music player (openMedia()).
+//                           On by default; false leaves them to the app
+//   mediaText               the lightbox's and player's words, for an app in
+//                           another language (see MediaViewer, MiniPlayer)
+const AppShell = ({ logo, title, subtitle, actions, theme, account, nav = [], active, onSelect, credits = true, overlays = true, mediaText, children }) => {
   const wide = useWide();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [menu, setMenu] = useState(false);
@@ -275,6 +284,18 @@ const AppShell = ({ logo, title, subtitle, actions, theme, account, nav = [], ac
   useEffect(() => { if (wide) setMenu(false); }, [wide]);
 
   const bar = { logo, title, subtitle, actions, theme, account };
+  const shared = overlays && (
+    <Fragment>
+      <Toaster />
+      <MediaViewer text={mediaText} />
+      {/* Beside the sidebar, wide or narrowed, so it never covers the credit
+          at its foot: the sidebar's width and the page's own left padding. */}
+      <MiniPlayer
+        text={mediaText}
+        className={nav.length > 0 ? (sidebarOpen ? 'md:left-[16.75rem]' : 'md:left-[5.75rem]') : ''}
+      />
+    </Fragment>
+  );
 
   if (wide) {
     return (
@@ -301,6 +322,7 @@ const AppShell = ({ logo, title, subtitle, actions, theme, account, nav = [], ac
             {children}
           </main>
         </div>
+        {shared}
       </div>
     );
   }
@@ -319,6 +341,7 @@ const AppShell = ({ logo, title, subtitle, actions, theme, account, nav = [], ac
           <MenuButton nav={nav} open={menu} onClick={() => setMenu(!menu)} buttonRef={fab} />
         </Fragment>
       )}
+      {shared}
     </div>
   );
 };

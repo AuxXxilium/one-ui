@@ -104,6 +104,16 @@ export function applyAccent(id, fallback = DEFAULT_ACCENT) {
   });
   // Always set: going from amber to another has to take its dark text away.
   root.style.setProperty('--accent-on', preset.on || '255 255 255');
+  // The checkbox tick and the radio dot, in the same colour as text on the
+  // accent, so they turn dark on amber like a primary button's label. A data
+  // URL cannot read a CSS variable, so the SVG is built here with the colour
+  // written in. one-ui.css has white fallbacks for the moment before this runs.
+  const on = `rgb(${(preset.on || '255 255 255').split(' ').join(',')})`;
+  const svg = (body) => `url("data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'>${body}</svg>`)}")`;
+  root.style.setProperty('--accent-check', svg(
+    `<path d='M4.5 8.5l2.5 2.5 4.5-5' fill='none' stroke='${on}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>`));
+  root.style.setProperty('--accent-dot', svg(`<circle cx='8' cy='8' r='3' fill='${on}'/>`));
 }
 
 // Light or dark: the .dark class on <html>, which every `dark:` class and the

@@ -114,6 +114,14 @@
       root.style.setProperty(`--accent-${shade}`, preset.shades[shade]);
     });
     root.style.setProperty("--accent-on", preset.on || "255 255 255");
+    const on = `rgb(${(preset.on || "255 255 255").split(" ").join(",")})`;
+    const svg = (body) => `url("data:image/svg+xml,${encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'>${body}</svg>`
+    )}")`;
+    root.style.setProperty("--accent-check", svg(
+      `<path d='M4.5 8.5l2.5 2.5 4.5-5' fill='none' stroke='${on}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>`
+    ));
+    root.style.setProperty("--accent-dot", svg(`<circle cx='8' cy='8' r='3' fill='${on}'/>`));
   }
   function applyDark(on) {
     if (typeof document === "undefined") return;
@@ -154,6 +162,33 @@
     }
   }
 
+  // src/toast.js
+  var TOAST_MS = 3e3;
+  var MAX = 3;
+  var seq = 0;
+  var list = [];
+  var subs = /* @__PURE__ */ new Set();
+  var emit = () => subs.forEach((fn) => fn(list));
+  var dismissToast = (id) => {
+    const before = list.length;
+    list = list.filter((x) => x.id !== id);
+    if (list.length !== before) emit();
+  };
+  var toast = (message, kind = "success") => {
+    if (message == null || message === "" || message === false) return;
+    seq += 1;
+    const id = seq;
+    list = list.filter((x) => x.message !== message);
+    list = [...list, { id, message, kind }].slice(-MAX);
+    emit();
+    setTimeout(() => dismissToast(id), TOAST_MS);
+  };
+  var subscribeToasts = (fn) => {
+    subs.add(fn);
+    fn(list);
+    return () => subs.delete(fn);
+  };
+
   // plain/entry.js
   var opts = document.currentScript && document.currentScript.dataset || {};
   var ACCENT_KEY = opts.accentKey || "accentColor";
@@ -169,8 +204,30 @@
   window.addEventListener("storage", (e) => {
     if (e.key === null || e.key === DARK_KEY || e.key === ACCENT_KEY || e.key === GLASS_KEY) applyAll();
   });
+  var toastBox = null;
+  var drawToasts = (list2) => {
+    if (!toastBox) {
+      if (!list2.length || !document.body) return;
+      toastBox = document.createElement("div");
+      toastBox.className = "oui-toasts";
+      toastBox.setAttribute("role", "status");
+      toastBox.setAttribute("aria-live", "polite");
+      document.body.appendChild(toastBox);
+    }
+    toastBox.replaceChildren(...list2.map((x) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = x.kind === "info" ? "oui-toast oui-toast-info" : "oui-toast";
+      b.textContent = x.message;
+      b.addEventListener("click", () => dismissToast(x.id));
+      return b;
+    }));
+  };
+  subscribeToasts(drawToasts);
   window.OneUI = {
     presets: ACCENT_PRESETS,
+    // OneUI.toast('Saved.') or OneUI.toast('Synced', 'info').
+    toast,
     setDark(on) {
       storeValue(DARK_KEY, !!on);
       applyAll();

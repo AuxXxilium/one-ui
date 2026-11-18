@@ -214,6 +214,8 @@ Each element below has a picture, what it is for, and the shortest code that use
 | `actions` | Extra buttons in the title bar, next to the appearance menu. |
 | `account` | Who is signed in. Adds the **user menu** to the top right, in place of the sun/moon button; see [User menu](#user-menu) below. |
 | `credits` | The One UI credit at the bottom of the sidebar, or at the bottom of the page on a phone. On by default. Only turn it off if you show `<Credits />` somewhere else. |
+| `overlays` | The [toasts](#toast), the [lightbox and the music player](#lightbox-and-music-player), which every page reaches with `toast()` and `openMedia()`. On by default; `false` if your app places them itself. |
+| `mediaText` | The words of the lightbox and the player, for an app in another language. |
 
 On a computer or tablet the pages are in the sidebar and the page scrolls on its own beside it. On a phone (under 768 pixels wide) the whole page scrolls as one, and the pages are in a compact menu above a round button in the bottom right corner. The button sits below dialogs, so it never covers their buttons. The title bar and the bottom of the page leave room for the notch and the home bar.
 
@@ -280,6 +282,21 @@ The current page is a white pill with a coloured bar on its left. The ☰ button
 ```
 
 `warning` is optional and shows in amber with a ⚠ icon. Buttons placed inside stay grouped on the right and wrap on small screens.
+
+| Option | Meaning |
+|---|---|
+| `onHelp` | Adds a **?** button after the page's buttons, for the page's help. Explanations someone reads once belong there rather than on the page every time. `helpLabel` is its tooltip ("Help"). |
+| `tabs` | The way to the page's other views, a `<PageTabs>` or `<Segmented>`, drawn right under the header: the page's name first, then its siblings. |
+
+```jsx
+<PageHeader icon="list" title="Tables & lists" subtitle="Rows of things"
+            onHelp={() => setHelp(true)}
+            tabs={<PageTabs value={view} onChange={setView} items={VIEWS} />}>
+  <AutoRefresh on={live} onChange={setLive} onRefresh={load} />
+</PageHeader>
+```
+
+<img src="docs/renders/page-help.png" alt="A page's help, opened from the ? in its header" width="720">
 
 ### Card
 
@@ -395,9 +412,28 @@ Values are shown in a typewriter font, which suits codes and numbers. Use `mono=
 
 ```jsx
 <ToggleSwitch checked={enabled} onChange={setEnabled} label="Email updates" />
+<ToggleSwitch checked={compact} onChange={setCompact}>Compact rows</ToggleSwitch>
+<ToggleSwitch size="sm" checked={live} onChange={setLive}>Live</ToggleSwitch>
 ```
 
-`label` is read out by screen readers when there is no visible text beside it.
+`label` is read out by screen readers when there is no visible text beside it. Text placed inside is drawn beside the switch and can be clicked too. `size="sm"` is the small one, for a toolbar.
+
+**Switch or checkbox?** A switch turns something on or off. Picking items from a list - who can edit, which files to delete - stays a checkbox.
+
+### AutoRefresh
+
+**Auto-refresh for a page whose figures move**, as arc-control has it: a switch named Auto-refresh and a Refresh button, for the page header. Off, the page asks for nothing and keeps its last reading until Refresh is pressed. `useAutoRefresh` remembers the choice per page in the browser; it is on by default.
+
+```jsx
+const [live, setLive] = useAutoRefresh('monitor');
+useVisiblePoll(load, 5000, live);
+
+<PageHeader icon="activity" title="Monitor">
+  <AutoRefresh on={live} onChange={setLive} onRefresh={load} busy={loading} every={5} />
+</PageHeader>
+```
+
+`every` (seconds) goes into the tooltip; `busy` turns the arrows and holds the button. `label` and `refreshLabel` change the words.
 
 ### Form fields
 
@@ -411,7 +447,9 @@ import { inputClass, labelClass, hintClass } from 'one-ui';
 <p className={hintClass}>This is how others see you.</p>
 ```
 
-You can also write `class="field"` instead of `inputClass`; it looks the same. Checkboxes, radio buttons and sliders take the highlight colour automatically.
+You can also write `class="field"` instead of `inputClass`; it looks the same.
+
+**Checkboxes and radio buttons** are drawn by One UI, as arc-control draws them: a grey box like a field, filled with the highlight colour when ticked. The tick turns dark on the light colours (Amber, Pastel Green), like the text on a primary button. Nothing to add: every `<input type="checkbox">` and `type="radio"` gets it. Sliders take the highlight colour too.
 
 ### CopyField
 
@@ -472,6 +510,34 @@ const [start, setStart] = useState('08:30');
 | `footer` | Your own buttons for the bottom bar, or `false` for no bottom bar. By default it shows a Close button. |
 | `onConfirm`, `confirmLabel`, `confirmVariant` | Turns the bottom bar into Cancel + a confirm button. |
 
+A long dialog scrolls inside. When it holds a list that scrolls by itself (`overflow-y-auto`), such as files to pick from, the dialog grows to fit and only the list scrolls, so there is never one scrollbar beside another.
+
+<img src="docs/renders/dialog-list.png" alt="A dialog with a list that scrolls on its own" width="720">
+
+### Toast
+
+**A short confirmation at the bottom middle of the screen, for three seconds.** "Saved.", "Link copied." A click dismisses it early, and at most three show at once.
+
+| **Glass, light** | **Solid, dark, amber** |
+|---|---|
+| ![A toast in light glass](docs/renders/toast-glass-light.png) | ![A toast, solid dark](docs/renders/toast-dark.png) |
+
+```jsx
+import { toast } from 'one-ui';
+
+toast('Saved.');                     // with a green tick
+toast('4 files synced.', 'info');    // a neutral note, in the highlight colour
+```
+
+`AppShell` already shows them; an app with its own frame puts `<Toaster />` in once. **Errors are not toasts:** one that vanishes is easily missed, so an error stays on the page beside what failed, as a `<Notice tone="error">`. `useNotice()` does both for a form: a confirmation becomes a toast, an error `{ ok: false, text }` is kept for the page to show.
+
+```jsx
+const [error, setNotice] = useNotice();
+setNotice('Saved.');                                         // a toast
+setNotice({ ok: false, text: 'A display name is needed.' }); // kept in error
+{error && <Notice tone="error">{error.text}</Notice>}
+```
+
 ### Notice
 
 **A message in a coloured box.** Optional close button.
@@ -523,9 +589,83 @@ const [menu, setMenu] = useState(null);
 <ContextMenu menu={menu} onClose={() => setMenu(null)} />
 ```
 
-An item is `{ label, onClick, icon, danger, disabled, title }`, or `'separator'` for a line between groups. Picking one closes the menu before its action runs, so a dialog it opens is not drawn under the menu.
+An item is `{ label, onClick, icon, danger, disabled, title }`, or `'separator'` for a line between groups. Picking one closes the menu before its action runs, so a dialog it opens is not drawn under the menu. Leave an item out with `canEdit && { … }`: empty entries are skipped.
+
+- **A second menu:** `{ label: 'Move to', icon: 'swap', items: [ … ] }` opens beside the entry on hover, a click or →, and ← goes back. It flips to the left near the right edge.
+- **A ticked entry:** `checked: true` or `false` shows a tick in the icon column while it is on.
+- **The "…" button:** `<MenuButton items={items} />` opens the same list from a button. Right-click is invisible, so give rows both: build the items once and hand them to each. Its menu is fixed to the window, so a card or a table that scrolls sideways does not cut it off, and it opens upward near the bottom.
+
+```jsx
+const items = [
+  { label: 'Open', icon: 'external', onClick: open },
+  { label: 'Starred', checked: starred, onClick: toggleStar },
+  { label: 'Move to', icon: 'swap', items: FOLDERS.map((f) => ({ label: f, onClick: () => move(f) })) },
+  'separator',
+  { label: 'Delete', icon: 'trash', danger: true, onClick: remove },
+];
+
+<tr onContextMenu={(e) => { e.preventDefault(); setMenu({ x: e.clientX, y: e.clientY, items }); }}>
+  …
+  <td><MenuButton items={items} label="Actions for Logo.svg" /></td>
+</tr>
+```
+
+| **A second menu, glass, dark** | **A row's "…" menu** |
+|---|---|
+| ![A submenu in dark glass](docs/renders/submenu-glass-dark.png) | ![A table row's menu](docs/renders/row-menu-light.png) |
 
 **Turn the browser's menu off** where an app has its own: `useNoBrowserMenu()` once, in the app. Right-click then opens the app's menu where it has one, and does nothing anywhere else. Text fields keep the browser's menu, for paste and spelling. The demo does this: its **Menus** page has a menu on each card and one for the page, and right-clicking anywhere else does nothing.
+
+### Lightbox and music player
+
+**Pictures and videos open over the page, music plays in a small player.** From Firevisor's Storage and Drive. The lightbox shows the name and "3 of 12", the one before and after at the sides, and Download and Close; Escape closes it and the arrow keys step. The player docks at the bottom left, keeps playing while people go on to other pages, and moves on to the next piece by itself.
+
+| Lightbox | Music player, glass, dark |
+|---|---|
+| ![The lightbox](docs/renders/lightbox.png) | ![The music player](docs/renders/music-player.png) |
+
+```jsx
+import { openMedia, mediaKindOf } from 'one-ui';
+
+const items = files.map((f) => ({ name: f.name, url: f.url, kind: mediaKindOf(f.name) }));
+<button onClick={() => openMedia(items, i)}>{files[i].name}</button>
+```
+
+An item is `{ name, url, kind, download }`, where `kind` is `image`, `video` or `audio` and `download` is another address for the Download button. The list may hold every kind, as a folder does: a picture opens with the folder's other pictures and videos beside it, a piece of music starts the player with the rest of the music queued after it; anything else is skipped. `mediaKindOf(name)` tells the kind from a file name.
+
+`AppShell` already includes both, the player beside the sidebar so the credit stays visible. An app with its own frame puts `<MediaViewer />` and `<MiniPlayer />` in once. `text` on either (or `mediaText` on `AppShell`) changes the words.
+
+### Chips
+
+**A row of figures as badges**, in place of a sentence: "7 online" green, "1 away" yellow, "↓ 6.6 MB/s" in the highlight colour.
+
+```jsx
+<Chips items={[
+  { label: '7 online', status: 'success' },
+  away > 0 && { label: `${away} away`, status: 'warning' },   // left out when false
+  { label: 'Admin', tone: 'bg-violet-100 text-violet-800' },
+]} />
+
+// The figures of ONE thing, as one pill:
+<Chips joined items={[{ label: '11 GB free', status: 'success' }, { label: '50 GB in all' }]} />
+<Chips joined items={[{ label: '6.6 MB/s', icon: 'arrowUp', flip: true, status: 'info' }, { label: '790 KB/s', icon: 'arrowUp', status: 'info' }]} />
+```
+
+`joined` puts the figures of one thing in one pill, divided by thin lines; separate things stay separate pills. An item takes `status` (like StatusBadge), `icon` (`flip` turns it over), `mono` for a code, `tone` for a colour of its own that is not a status, and `title`. `small` is the size for a box's title line.
+
+### Ring
+
+**A share of a whole, as a dial**, the same one StatsWidget draws. Green, then amber from 70 % and red from 90 %.
+
+```jsx
+<Ring label="Storage" pct={39} />
+<Ring label="Not measured" pct={null} />                               // a dash, never 0
+<Ring label="Cores given" pct={148} tone="text-blue-500" sub="of 16" size={64} />
+```
+
+`tone` replaces the warning colours where a high figure is normal. Above 100 the ring is full and the figure says how far. `value` replaces the text inside.
+
+![Chips and rings](docs/renders/components-amber.png)
 
 ### StatsWidget
 
@@ -587,7 +727,7 @@ Dials and volume bars are green, then amber from 70 % and red from 90 %: status 
 
 ![All icons](docs/renders/icons.png)
 
-There are 96 line icons, all drawn the same way so they sit well together and take the colour of whatever they are in. Use them by name:
+There are 104 line icons, all drawn the same way so they sit well together and take the colour of whatever they are in. Use them by name:
 
 ```jsx
 <Icon icon="refresh" />                        // 16 px, in the text colour
@@ -628,7 +768,7 @@ For pages without Preact or Tailwind. Link the two files and write normal HTML:
 |---|---|
 | ![Plain light](docs/renders/plain-light.png) | ![Plain dark](docs/renders/plain-dark-glass.png) |
 
-Headings, paragraphs, links, `code`, form fields and checkboxes are styled as soon as the file is linked. For everything else, add these classes:
+Headings, paragraphs, links, `code`, form fields, checkboxes and radio buttons are styled as soon as the file is linked. For everything else, add these classes:
 
 | Class | What it is |
 |---|---|
@@ -639,6 +779,7 @@ Headings, paragraphs, links, `code`, form fields and checkboxes are styled as so
 | `oui-stat` › `oui-stat-label`, `oui-stat-value` | A big number in a grey box. |
 | `oui-btn` + `oui-btn-primary` / `-outline` / `-success` / `-danger` | Buttons. A plain `oui-btn` is the grey one. |
 | `oui-badge` + `oui-badge-success` / `-warning` / `-error` / `-info` | Status words. |
+| `oui-chips` | Badges inside it join into one pill, for the figures of one thing. |
 | `oui-dot` + `oui-dot-success` / `-warning` / `-error` | A small status dot. |
 | `oui-notice` + `oui-notice-success` / `-warning` / `-error` | Message boxes. |
 | `oui-segmented` | A row of `<button>`s; give the chosen one `aria-selected="true"`. |
@@ -655,6 +796,7 @@ The script applies the remembered mode, colour and surface before the page appea
 OneUI.setDark(true);
 OneUI.setAccent('amber');   // red, blue, amber, graphite, green
 OneUI.setGlass(true);
+OneUI.toast('Saved.');      // 3 seconds at the bottom middle; add 'info' for a neutral note
 ```
 
 If the app next to it stores its settings under other names, tell the script:
@@ -676,12 +818,15 @@ src/                  The preset (Preact + Tailwind)
   theme.js              the five colours and the light/dark/glass switches
   useTheme.js           all of the above for a Preact app, remembered
   useVisiblePoll.js     poll only while the page is on screen
+  toast.js              toast(): the queue the Toaster draws
+  media.js              openMedia(): what the lightbox and the player show
   styles.js             inputClass, labelClass, hintClass
   icons.jsx             the icons, Icon, IconTile, IconLabel
   components/           AppShell, Sidebar, AppearanceMenu, PageHeader, PageTabs, Card,
-                        TabbedCard, Button, StatusBadge, ToggleSwitch, Segmented, Modal,
-                        CopyField, TimePicker, Feedback (Loading, Empty, Notice, ProgressBar),
-                        ContextMenu, StatsWidget, Credits
+                        TabbedCard, Button, StatusBadge, Chips, Ring, ToggleSwitch,
+                        AutoRefresh, Segmented, Modal, Toaster, CopyField, TimePicker,
+                        Feedback (Loading, Empty, Notice, ProgressBar), ContextMenu
+                        (and MenuButton), MediaViewer, MiniPlayer, StatsWidget, Credits
   index.js              everything, from one place: import { Card } from 'one-ui'
 plain/                The plain version
   one-ui-plain.css      the stylesheet
@@ -704,7 +849,7 @@ npm run build     # builds demo/demo.js and demo.css; open demo/index.html
 npm run render    # builds, then takes new pictures for docs/renders (needs Chrome or Edge)
 ```
 
-The demo's content is made up and different on every load. Add `?seed=7` to the address to get the same content every time; the pictures use seed 42. The address can also choose what is shown, e.g. `index.html?page=forms&dark=1&accent=green&glass=1`. On the Menus page `&menu=1` opens a card's "…" menu and `&ctx=1` a right-click menu; `&widget=1` opens the host widget and `&widget=0` leaves it out.
+The demo's content is made up and different on every load. Add `?seed=7` to the address to get the same content every time; the pictures use seed 42. The address can also choose what is shown, e.g. `index.html?page=forms&dark=1&accent=green&glass=1`. On the Menus page `&menu=1` opens a card's "…" menu (`&sub=1` its second menu too) and `&ctx=1` a right-click menu; `&widget=1` opens the host widget and `&widget=0` leaves it out. `&toast=1` shows a toast on the Dialogs page, `&help=1` the Overview's help, and on the Tables page `&rowmenu=1` opens a row's menu, `&media=image` the lightbox and `&media=audio` the music player.
 
 **The live demo** at https://auxxxilium.github.io/one-ui/demo/ is the `demo/` folder exactly as it is in the repository: GitHub Pages serves the `main` branch, with this README as the start page. So after changing anything in `src/`, `plain/` or `demo/src/`, run `npm run build` and commit the rebuilt `demo/demo.js`, `demo/demo.css` and `plain/one-ui-plain.js` with your change.
 

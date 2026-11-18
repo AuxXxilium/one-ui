@@ -1,6 +1,7 @@
 import { h, Fragment } from 'preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { TILE } from './Card';
+import Ring from './Ring';
 import { Icon } from '../icons';
 
 // A small live reading pinned to the bottom-right corner, from Firevisor's host
@@ -45,40 +46,10 @@ export const formatBytes = (bytes) => {
 // 95%.
 const level = (pct) => (pct >= 90 ? 'red' : pct >= 70 ? 'amber' : 'green');
 const FILL = { green: 'bg-green-500', amber: 'bg-amber-500', red: 'bg-red-500' };
-const STROKE = { green: 'text-green-500', amber: 'text-amber-500', red: 'text-red-500' };
 
 const clamp = (pct) => Math.max(0, Math.min(100, Number(pct) || 0));
 
-const RING_R = 22;
-const RING_C = 2 * Math.PI * RING_R;
-
-// A dial: a share of a fixed whole is what a ring says at a glance, and three
-// of them sit side by side where three bars would stack.
-const Ring = ({ pct, label, value }) => {
-  const p = clamp(pct);
-  return (
-    <div className="flex flex-col items-center min-w-0">
-      <div className="relative w-14 h-14">
-        {/* Turned so the arc starts at twelve o'clock, the way a dial is read.
-            Kebab-case attributes: plain Preact without compat hands SVG props
-            to setAttribute as spelled, and strokeWidth is not one SVG knows. */}
-        <svg viewBox="0 0 56 56" className="w-14 h-14 -rotate-90" aria-hidden="true">
-          <circle cx="28" cy="28" r={RING_R} fill="none" stroke-width="5"
-                  className="stroke-black/10 dark:stroke-white/10" />
-          <circle cx="28" cy="28" r={RING_R} fill="none" stroke-width="5" stroke-linecap="round"
-                  stroke="currentColor"
-                  stroke-dasharray={RING_C}
-                  stroke-dashoffset={RING_C * (1 - p / 100)}
-                  className={`${STROKE[level(p)]} transition-[stroke-dashoffset] duration-500`} />
-        </svg>
-        <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold tabular-nums text-gray-700 dark:text-gray-200">
-          {value ?? `${Math.round(p)}%`}
-        </span>
-      </div>
-      <span className="mt-1 text-[11px] text-gray-500 dark:text-gray-400 truncate max-w-full">{label}</span>
-    </div>
-  );
-};
+// The dials are Ring (Ring.jsx), the same one a page can use on its own.
 
 const Track = ({ children, thin }) => (
   <div className={`${thin ? 'h-1' : 'h-1.5'} w-full rounded-full bg-black/10 dark:bg-white/10 overflow-hidden`}>
