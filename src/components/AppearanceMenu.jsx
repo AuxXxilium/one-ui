@@ -1,14 +1,16 @@
 import { h, Fragment } from 'preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { ACCENT_PRESETS, swatchOf } from '../theme';
+import { wallpapers } from '../wallpapers';
 import { Icon } from '../icons';
 
-const ModeButton = ({ active, onClick, icon, label }) => (
+const ModeButton = ({ active, onClick, icon, label, disabled }) => (
   <button
     type="button"
     onClick={onClick}
     aria-pressed={active}
-    className={`flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-[13px] transition-colors ${
+    disabled={disabled}
+    className={`flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-[13px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
       active
         ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
         : 'bg-black/5 text-gray-900 dark:bg-white/10 dark:text-white hover:bg-black/10 dark:hover:bg-white/15'
@@ -18,11 +20,42 @@ const ModeButton = ({ active, onClick, icon, label }) => (
   </button>
 );
 
+const Heading = ({ children }) => (
+  <div className="px-0.5 pt-0.5 text-xs font-semibold text-gray-500 dark:text-gray-400">{children}</div>
+);
+
+// One wallpaper: a small picture of it with its name beneath, so the choice
+// is made by looking. The ring marks the one in use.
+const WallpaperTile = ({ label, active, onClick, className = '', style }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    title={label}
+    aria-label={`Wallpaper: ${label}`}
+    aria-pressed={active}
+    className="flex flex-col gap-1 text-left min-w-0"
+  >
+    <span
+      className={`aspect-[16/10] w-full rounded-lg bg-cover bg-center ${className} ${
+        active
+          ? 'ring-2 ring-blue-600 dark:ring-blue-400 ring-offset-1 ring-offset-white dark:ring-offset-zinc-800'
+          : 'ring-1 ring-black/10 dark:ring-white/15 hover:ring-black/25 dark:hover:ring-white/30'
+      }`}
+      style={style}
+    />
+    <span className={`text-[11px] leading-tight truncate ${active ? 'font-semibold text-blue-700 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'}`}>{label}</span>
+  </button>
+);
+
 // The choices themselves: Mode as two buttons, Surface (solid or glass) only
-// when setGlass is passed, and Color as a row of dots with the one in use
-// ringed. The appearance menu shows them, and so does AppShell's account
-// menu.
-export const AppearancePanel = ({ dark, setDark, accent, setAccent, glass, setGlass, presets = ACCENT_PRESETS }) => (
+// when setGlass is passed, Layout with a `layout` (useLayout), Color as a row
+// of dots with the one in use ringed, and Wallpaper with a `wallpaper`
+// (useWallpaper). The appearance menu shows them, and so does AppShell's
+// account menu. `onDone` closes whatever holds them when a choice hands over
+// to something else - choosing a picture opens the file dialog.
+export const AppearancePanel = ({
+  dark, setDark, accent, setAccent, glass, setGlass, presets = ACCENT_PRESETS, layout, wallpaper, onDone,
+}) => (
   <Fragment>
     <div className="px-0.5 pt-0.5 text-xs font-semibold text-gray-500 dark:text-gray-400">Mode</div>
     <div className="grid grid-cols-2 gap-1">
@@ -36,6 +69,18 @@ export const AppearancePanel = ({ dark, setDark, accent, setAccent, glass, setGl
           <ModeButton active={!glass} onClick={() => setGlass(false)} icon="stop" label="Solid" />
           <ModeButton active={glass} onClick={() => setGlass(true)} icon="layers" label="Glass" />
         </div>
+      </Fragment>
+    )}
+    {layout && (
+      <Fragment>
+        <Heading>Layout</Heading>
+        <div className="grid grid-cols-2 gap-1">
+          <ModeButton active={layout.current !== 'desktop'} onClick={() => layout.set('classic')} icon="layoutSidebar" label="Classic" />
+          <ModeButton active={layout.current === 'desktop'} disabled={!layout.available} onClick={() => layout.set('desktop')} icon="layoutDesktop" label="Desktop" />
+        </div>
+        {!layout.available && (
+          <div className="px-0.5 text-[11px] leading-snug text-gray-500 dark:text-gray-400 max-w-[200px]">The desktop needs a wider window.</div>
+        )}
       </Fragment>
     )}
     <div className="px-0.5 pt-0.5 text-xs font-semibold text-gray-500 dark:text-gray-400">Color</div>
@@ -60,6 +105,52 @@ export const AppearancePanel = ({ dark, setDark, accent, setAccent, glass, setGl
         );
       })}
     </div>
+    {wallpaper && (
+      <Fragment>
+        <Heading>Wallpaper</Heading>
+        <div className="grid grid-cols-3 gap-x-1.5 gap-y-2 p-0.5">
+          {wallpapers().map((wp) => (
+            <WallpaperTile
+              key={wp.id}
+              label={wp.label}
+              active={wallpaper.id === wp.id}
+              onClick={() => wallpaper.set(wp.id)}
+              className={wp.className}
+              style={wp.style}
+            />
+          ))}
+          {wallpaper.custom && (
+            <WallpaperTile
+              label={wallpaper.customLabel || 'Your picture'}
+              active={wallpaper.id === 'custom'}
+              onClick={() => wallpaper.set('custom')}
+              style={{ backgroundImage: `url("${wallpaper.custom.url}")` }}
+            />
+          )}
+          <button
+            type="button"
+            onClick={() => { if (onDone) onDone(); wallpaper.choose(); }}
+            title="Choose a picture from this computer"
+            aria-label="Choose a picture for the wallpaper"
+            className="group flex flex-col gap-1 text-left"
+          >
+            <span className="aspect-[16/10] w-full rounded-lg flex items-center justify-center bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-300 group-hover:bg-black/10 dark:group-hover:bg-white/15 transition-colors">
+              <Icon icon="upload" size={16} />
+            </span>
+            <span className="text-[11px] leading-tight truncate text-gray-600 dark:text-gray-300">Your own…</span>
+          </button>
+        </div>
+        {wallpaper.custom && (
+          <button
+            type="button"
+            onClick={wallpaper.drop}
+            className="flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-[13px] bg-black/5 dark:bg-white/10 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/15 transition-colors"
+          >
+            <Icon icon="trash" size={14} />Remove your picture
+          </button>
+        )}
+      </Fragment>
+    )}
   </Fragment>
 );
 
@@ -104,11 +195,11 @@ const AppearanceMenu = (theme) => {
 
       {open && (
         <div
-          className="absolute right-0 mt-2 min-w-[200px] max-w-[calc(100vw-2rem)] grid gap-1.5 rounded-xl panel panel-menu shadow-xl ring-1 ring-black/5 dark:ring-white/10 p-2 z-50"
+          className={`absolute right-0 mt-2 min-w-[200px] ${theme.wallpaper ? 'w-64' : ''} max-w-[calc(100vw-2rem)] grid gap-1.5 rounded-xl panel panel-menu shadow-xl ring-1 ring-black/5 dark:ring-white/10 p-2 z-50`}
           role="dialog"
           aria-label="Appearance"
         >
-          <AppearancePanel {...theme} />
+          <AppearancePanel {...theme} onDone={() => setOpen(false)} />
         </div>
       )}
     </div>

@@ -33,6 +33,7 @@ You don't have to write the credit yourself:
 - [What it looks like](#what-it-looks-like)
 - [Two ways to use it](#two-ways-to-use-it)
 - [Light, dark, colour and glass](#light-dark-colour-and-glass)
+- [Wallpapers and the desktop](#wallpapers-and-the-desktop)
 - [App icons](#app-icons)
 - [The elements](#the-elements)
 - [Plain HTML (no build step)](#plain-html-no-build-step)
@@ -148,13 +149,90 @@ const theme = useTheme({ defaultGlass: true });
 
 **Only one glass box:** `<Card glass>` makes just that card see-through, even when the rest of the app is solid.
 
-**Menus:** a box that floats over the page - a drop-down, a right-click menu, a popover - takes `panel panel-menu` instead of `panel`. Under glass it is clearer than the boxes around it, so it does not turn into a flat white sheet over a light card. Mark its hover rows and dividers with a tint (`bg-black/5 dark:bg-white/10`) rather than a grey, which would lay a solid bar across the glass. The appearance menu is built this way, and so is the card menu on the demo's **Menus** page: a `<Card overflow="visible">` whose "more" button carries `aria-expanded`, so the card is lifted above the ones after it while the menu is open.
+**Menus:** a box that floats over the page - a drop-down, a right-click menu, a popover - takes `panel panel-menu` instead of `panel`. Under glass it is clearer than the boxes around it, so it does not turn into a flat white sheet over a light card. Mark its hover rows and dividers with a tint (`bg-black/5 dark:bg-white/10`) rather than a grey, which would lay a solid bar across the glass. The appearance menu is built this way, and so is every `MenuButton` (see [ContextMenu](#contextmenu)): its button carries `aria-expanded`, so the card it sits in is lifted above the ones after it while the menu is open.
 
 | **Card menu, glass, light** | **Card menu, glass, dark, amber** |
 |---|---|
 | ![Card menu in light glass](docs/renders/menus-glass-light.png) | ![Card menu in dark glass](docs/renders/menus-glass-dark.png) |
 
 **A box that marks itself with an inset shadow** - an accent bar down one side, say - draws it on an `::after` covering the box (`relative after:absolute after:inset-0 after:rounded-[inherit] after:shadow-[inset_…]`). Under glass the tint and blur are a layer over everything the box itself draws, and a shadow on the box would come out washed. The sidebar's current page does it this way.
+
+---
+
+## Wallpapers and the desktop
+
+Two more settings join the appearance menu when an app asks for them: a **wallpaper** behind everything, and the **layout**, Classic or Desktop.
+
+| Desktop, light | Desktop, glass, dark, northern lights |
+|---|---|
+| ![The desktop](docs/renders/desktop-light.png) | ![The desktop in dark glass](docs/renders/desktop-glass-dark.png) |
+| **Wallpaper under the classic layout** | **Choosing a wallpaper** |
+| ![A wallpaper under the classic layout](docs/renders/wallpaper-classic.png) | ![The wallpapers in the appearance menu](docs/renders/wallpaper-picker.png) |
+
+```jsx
+import { AppShell, useTheme, useWallpaper, useLayout } from 'one-ui';
+
+const PAGES = { home: Home, tasks: Tasks, settings: Settings };
+
+export default function App() {
+  const theme = useTheme();
+  const wallpaper = useWallpaper();   // the wallpaper, remembered
+  const layout = useLayout();         // Classic or Desktop, remembered
+  const [page, setPage] = useState('home');
+  const Page = PAGES[page];
+
+  return (
+    <AppShell title="My App" theme={theme} wallpaper={wallpaper} layout={layout}
+              renderPage={(id) => { const P = PAGES[id]; return <P />; }}
+              nav={NAV} active={page} onSelect={setPage}>
+      <Page />
+    </AppShell>
+  );
+}
+```
+
+That is all an app adds. `children` is still the classic layout's page; `renderPage(id)` draws any page by its id, for the desktop's windows.
+
+### Wallpapers
+
+Ten to choose from, shown as small pictures in the appearance menu: the **soft wash** (One UI's usual background, the default), **Accent** (follows the colour picker), five pictures drawn in the browser - **Northern lights**, **Mountains**, **Waves**, **Dunes**, **Embers** - and the gradients **Dusk**, **Mist** and **Graphite**. **Your own…** takes a picture from the computer: it is scaled down to at most 2560 × 1600 and kept in the browser.
+
+The pictures are drawn as SVG when first shown, so they are sharp on any screen and add a few KB, not megabytes of image files.
+
+Over a picture, the title bar, the sidebar and each page header get a frosted background of their own, so their words stay readable on a bright or busy wallpaper. Cards are unchanged; with Surface on Glass, the picture shows through them.
+
+`useWallpaper({ key, pictureKey })` takes other storage names, e.g. one per signed-in user. `wallpapers()` lists the presets and `wallpaperOf(id)` gives one, for drawing a wallpaper somewhere yourself.
+
+### Desktop
+
+With the layout on **Desktop**, every page opens in a **window** of its own on the wallpaper, several side by side. It needs a window at least 1024 pixels wide; on a narrower one the classic layout shows and the choice is greyed out.
+
+- **Windows** move by their title bar and resize from every edge and corner. Dragged against the left or right edge they fill that half, against the top the whole screen, into a corner a quarter; double-click the title bar to maximise. Each has minimise, maximise and close, and the page inside lays itself out for the window's width, not the screen's.
+- **The taskbar** across the top: the app's button opens a **launcher** with every page, searchable and grouped like the sidebar. The open windows follow as tabs (click the one in front to minimise it, middle-click to close), then the user menu, a **clock** that opens a calendar, and Show desktop.
+- **Icons** on the desktop open their page. Drag them around, drag a page out of the launcher onto the desktop, rename one with F2, remove one with Delete.
+- **Right-click** anything: the desktop (icon size, arrange, wallpaper, show desktop, close all), an icon, a taskbar tab or a title bar (open, minimise, halves, add to desktop, pin to taskbar, close).
+- **Keys:** Alt+Shift+W closes the window in front, Alt+Shift+M minimises it, Alt+Shift+D shows the desktop.
+- Open windows, their places, the icons and the pinned apps are **remembered** in the browser.
+
+| The launcher | Icons on the Mountains wallpaper |
+|---|---|
+| ![The launcher](docs/renders/desktop-launcher.png) | ![Desktop icons](docs/renders/desktop-mountains.png) |
+
+Inside a window the title bar already shows the page's icon and name, so `PageHeader` leaves them out there and keeps the subtitle, a warning and the buttons. A page can ask with `useContext(InWindow)`.
+
+**More options** go in AppShell's `desktop`:
+
+| Option | Meaning |
+|---|---|
+| `storageKey` | Where the desktop is remembered, `'oneui_desktop'` by default. Use one per user in an app with sign-in. |
+| `defaultIcons` | The pages on a new desktop. All of them by default. |
+| `onHelp` | `(id) => …`: adds a **?** to every window and Help to its menus. |
+| `onClockSettings` | Adds a "Date and time settings" button under the calendar. |
+| `logo` | A smaller logo for the taskbar than the title bar's. |
+| `openRef` | A ref the desktop puts its `open(id)` in, so the app can open a window itself. |
+| `text` | The words, for an app in another language. |
+
+`<Desktop apps={NAV} renderApp={…} />` also works on its own, without AppShell. Then put the [credit](#credits-required) in its `footer`.
 
 ---
 
@@ -216,6 +294,9 @@ Each element below has a picture, what it is for, and the shortest code that use
 | `credits` | The One UI credit at the bottom of the sidebar, or at the bottom of the page on a phone. On by default. Only turn it off if you show `<Credits />` somewhere else. |
 | `overlays` | The [toasts](#toast), the [lightbox and the music player](#lightbox-and-music-player), which every page reaches with `toast()` and `openMedia()`. On by default; `false` if your app places them itself. |
 | `mediaText` | The words of the lightbox and the player, for an app in another language. |
+| `wallpaper` | What `useWallpaper()` gives you: the wallpaper, and the choice of it in the appearance menu. See [Wallpapers](#wallpapers). |
+| `layout`, `renderPage` | What `useLayout()` gives you, and `(id) => page`: the choice of Classic or Desktop, and the windows. See [Desktop](#desktop). |
+| `desktop` | More options for the desktop. |
 
 On a computer or tablet the pages are in the sidebar and the page scrolls on its own beside it. On a phone (under 768 pixels wide) the whole page scrolls as one, and the pages are in a compact menu above a round button in the bottom right corner. The button sits below dialogs, so it never covers their buttons. The title bar and the bottom of the page leave room for the notch and the home bar.
 
@@ -538,6 +619,28 @@ setNotice({ ok: false, text: 'A display name is needed.' }); // kept in error
 {error && <Notice tone="error">{error.text}</Notice>}
 ```
 
+### RestartScreen
+
+**What the page shows while the server restarts or shuts down.** Show it after the confirmation: it covers the page, says what is happening and checks every few seconds whether the server answers. A restart waits until the server has gone down *and* come back, then reloads the page; reloading earlier would only show the old version on its way out. If nothing happens for two minutes, or it is not back after ten, it says so and offers Reload. A shutdown only waits for the server to stop answering.
+
+<img src="docs/renders/restart.png" alt="The restart screen" width="720">
+
+```jsx
+const [restarting, setRestarting] = useState(null);
+
+<Modal isOpen={ask} onClose={…} title="Restart the server?" size="sm"
+       onConfirm={() => { api.restart(); setRestarting('restart'); }} confirmLabel="Restart" />
+{restarting && <RestartScreen kind={restarting} name="The server" />}
+```
+
+| Option | Meaning |
+|---|---|
+| `kind` | `'restart'` *(default)* or `'shutdown'`. |
+| `name` | What is restarting, for the words: "The server is restarting…". |
+| `check` | `async () => true` while the server answers. By default it asks for the page's own address. |
+| `onBack` | What happens once it is back; reloads the page by default. |
+| `text` | Other words, for an app in another language. |
+
 ### Notice
 
 **A message in a coloured box.** Optional close button.
@@ -727,7 +830,7 @@ Dials and volume bars are green, then amber from 70 % and red from 90 %: status 
 
 ![All icons](docs/renders/icons.png)
 
-There are 104 line icons, all drawn the same way so they sit well together and take the colour of whatever they are in. Use them by name:
+There are 117 line icons, all drawn the same way so they sit well together and take the colour of whatever they are in. Use them by name:
 
 ```jsx
 <Icon icon="refresh" />                        // 16 px, in the text colour
@@ -818,6 +921,9 @@ src/                  The preset (Preact + Tailwind)
   theme.js              the five colours and the light/dark/glass switches
   useTheme.js           all of the above for a Preact app, remembered
   useVisiblePoll.js     poll only while the page is on screen
+  useWallpaper.jsx      the wallpaper, remembered, for AppShell
+  useLayout.js          Classic or Desktop, remembered, for AppShell
+  wallpapers.js         the wallpapers, drawn
   toast.js              toast(): the queue the Toaster draws
   media.js              openMedia(): what the lightbox and the player show
   styles.js             inputClass, labelClass, hintClass
@@ -826,7 +932,9 @@ src/                  The preset (Preact + Tailwind)
                         TabbedCard, Button, StatusBadge, Chips, Ring, ToggleSwitch,
                         AutoRefresh, Segmented, Modal, Toaster, CopyField, TimePicker,
                         Feedback (Loading, Empty, Notice, ProgressBar), ContextMenu
-                        (and MenuButton), MediaViewer, MiniPlayer, StatsWidget, Credits
+                        (and MenuButton), MediaViewer, MiniPlayer, StatsWidget,
+                        RestartScreen, AccountMenu, Credits
+  components/desktop/   Desktop, Window, Taskbar
   index.js              everything, from one place: import { Card } from 'one-ui'
 plain/                The plain version
   one-ui-plain.css      the stylesheet
@@ -849,7 +957,7 @@ npm run build     # builds demo/demo.js and demo.css; open demo/index.html
 npm run render    # builds, then takes new pictures for docs/renders (needs Chrome or Edge)
 ```
 
-The demo's content is made up and different on every load. Add `?seed=7` to the address to get the same content every time; the pictures use seed 42. The address can also choose what is shown, e.g. `index.html?page=forms&dark=1&accent=green&glass=1`. On the Menus page `&menu=1` opens a card's "…" menu (`&sub=1` its second menu too) and `&ctx=1` a right-click menu; `&widget=1` opens the host widget and `&widget=0` leaves it out. `&toast=1` shows a toast on the Dialogs page, `&help=1` the Overview's help, and on the Tables page `&rowmenu=1` opens a row's menu, `&media=image` the lightbox and `&media=audio` the music player.
+The demo's content is made up and different on every load. Add `?seed=7` to the address to get the same content every time; the pictures use seed 42. The address can also choose what is shown, e.g. `index.html?page=forms&dark=1&accent=green&glass=1`. On the Menus page `&menu=1` opens a card's "…" menu (`&sub=1` its second menu too) and `&ctx=1` a right-click menu; `&widget=1` opens the host widget and `&widget=0` leaves it out. `&toast=1` shows a toast on the Dialogs page, `&help=1` the Overview's help, and on the Tables page `&rowmenu=1` opens a row's menu, `&media=image` the lightbox and `&media=audio` the music player. `&wallpaper=mountains` picks a wallpaper, `&layout=desktop` shows the desktop, `&windows=tables,overview` opens those windows on a fresh desktop and `&open=launcher` the launcher. `&restart=restart` (or `shutdown`) on the Dialogs page shows the restart screen.
 
 **The live demo** at https://auxxxilium.github.io/one-ui/demo/ is the `demo/` folder exactly as it is in the repository: GitHub Pages serves the `main` branch, with this README as the start page. So after changing anything in `src/`, `plain/` or `demo/src/`, run `npm run build` and commit the rebuilt `demo/demo.js`, `demo/demo.css` and `plain/one-ui-plain.js` with your change.
 

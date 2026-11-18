@@ -26,7 +26,13 @@ if (!executablePath) {
 
 const OUT = 'docs/renders';
 mkdirSync(OUT, { recursive: true });
-const url = (file, query) => `${pathToFileURL(resolve('demo', file)).href}?seed=42&${query}`;
+// The layout and the wallpaper are remembered between pictures like the rest
+// of the look, so every picture says which it wants: classic on the wash
+// unless it names another.
+const url = (file, query) => {
+  const look = ['layout=classic', 'wallpaper=wash'].filter((kv) => !query.includes(`${kv.split('=')[0]}=`)).join('&');
+  return `${pathToFileURL(resolve('demo', file)).href}?seed=42&${look}&${query}`;
+};
 
 // The bottom-right corner, where the host widget sits, with the cards behind it.
 const CORNER = { x: 880, y: 400, width: 560, height: 500 };
@@ -59,6 +65,13 @@ const SHOTS = [
   ['page-help', 'index.html', 'page=overview&dark=0&accent=red&glass=0&help=1&widget=0', { tall: false }],
   ['lightbox', 'index.html', 'page=tables&dark=0&accent=blue&glass=0&media=image&widget=0', { tall: false }],
   ['music-player', 'index.html', 'page=tables&dark=1&accent=blue&glass=1&media=audio&widget=0', { tall: false }],
+  ['desktop-light', 'index.html', 'page=overview&dark=0&accent=blue&glass=0&layout=desktop&windows=tables,overview&widget=0', { tall: false, wait: 300 }],
+  ['desktop-glass-dark', 'index.html', 'page=overview&dark=1&accent=green&glass=1&layout=desktop&wallpaper=aurora&windows=forms,components&widget=0', { tall: false, wait: 300 }],
+  ['desktop-mountains', 'index.html', 'page=overview&dark=0&accent=red&glass=1&layout=desktop&wallpaper=mountains&windows=x&widget=0', { tall: false, wait: 300 }],
+  ['desktop-launcher', 'index.html', 'page=overview&dark=1&accent=blue&glass=1&layout=desktop&wallpaper=waves&windows=x&open=launcher&widget=0', { tall: false, wait: 300 }],
+  ['wallpaper-classic', 'index.html', 'page=overview&dark=1&accent=amber&glass=1&wallpaper=dusk&widget=0', { tall: false }],
+  ['wallpaper-picker', 'index.html', 'page=about&dark=0&accent=blue&glass=1&wallpaper=waves&widget=0&open=look', { tall: false }],
+  ['restart', 'index.html', 'page=dialogs&dark=0&accent=blue&glass=1&restart=restart&widget=0', { tall: false }],
   ['widget-solid-light', 'index.html', 'page=overview&dark=0&accent=blue&glass=0&widget=1', { tall: false, clip: CORNER }],
   ['widget-solid-dark', 'index.html', 'page=overview&dark=1&accent=blue&glass=0&widget=1', { tall: false, clip: CORNER }],
   ['widget-glass-light', 'index.html', 'page=overview&dark=0&accent=blue&glass=1&widget=1', { tall: false, clip: CORNER }],

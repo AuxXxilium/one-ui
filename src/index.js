@@ -3,6 +3,10 @@
 // credited wherever One UI is used: see NOTICE.
 
 export { default as AppShell } from './components/AppShell';
+export { default as AccountMenu } from './components/AccountMenu';
+export { default as Desktop } from './components/desktop/Desktop';
+export { InWindow } from './components/desktop/context';
+export { default as RestartScreen } from './components/RestartScreen';
 export { default as Sidebar, NavBadges, badgesOf } from './components/Sidebar';
 export { default as AppearanceMenu, AppearancePanel } from './components/AppearanceMenu';
 export { default as PageHeader } from './components/PageHeader';
@@ -37,4 +41,10 @@ export {
   applyAccent, applyDark, applyGlass, readStoredAccent, readStoredDark, readStoredGlass, storeValue,
 } from './theme';
 export { useTheme } from './useTheme';
+export { useWallpaper } from './useWallpaper';
+export { useLayout } from './useLayout';
+export {
+  wallpapers, wallpaperOf, pictureToWallpaper, readStoredWallpaper, readStoredPicture, storePicture,
+  WALLPAPER_IDS, DEFAULT_WALLPAPER,
+} from './wallpapers';
 export { useVisiblePoll } from './useVisiblePoll';

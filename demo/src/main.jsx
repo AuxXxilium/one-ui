@@ -5,6 +5,7 @@ import {
   Segmented, Modal, CopyField, Loading, Empty, Notice, ProgressBar, Credits, Icon, IconTile, ICONS,
   ContextMenu, MenuButton, StatsWidget, formatBytes, useNoBrowserMenu, useVisiblePoll, TimePicker,
   Chips, Ring, AutoRefresh, useAutoRefresh, toast, useNotice, openMedia,
+  RestartScreen, useWallpaper, useLayout,
   inputClass, labelClass, hintClass, useTheme, storeValue,
 } from '../../src/index';
 import * as R from './random';
@@ -20,7 +21,8 @@ import { mediaFolder } from './media';
 // out. A signed-in user's menu sits top right, holding the appearance
 // choices; &account=0 shows the plain sun/moon appearance menu instead.
 // &open=account opens the user's menu, &open=look its appearance choices, and
-// &open=pages the phone's page menu. &sub=1 with &menu=1 opens the card
+// &open=pages the phone's page menu. &layout=desktop shows the desktop, with
+// &windows=a,b open and &open=launcher its launcher; &wallpaper= picks one. &sub=1 with &menu=1 opens the card
 // menu's "Move to" submenu; &toast=1 shows a toast, &help=1 the Overview's
 // help; &media=image opens the lightbox and &media=audio the music player
 // (on the Tables page, Pictures & music), and &rowmenu=1 a file's "..." menu.
@@ -29,6 +31,12 @@ const params = new URLSearchParams(location.search);
 if (params.has('dark')) storeValue('darkMode', params.get('dark') === '1');
 if (params.has('accent')) storeValue('accentColor', params.get('accent'));
 if (params.has('glass')) storeValue('surfaceGlass', params.get('glass') === '1');
+if (params.has('wallpaper')) storeValue('wallpaper', params.get('wallpaper'));
+if (params.has('layout')) storeValue('uiLayout', params.get('layout'));
+// A fresh desktop for the renders, with these windows open: &windows=a,b
+if (params.has('windows')) {
+  try { localStorage.removeItem('oneui_desktop'); } catch (e) { /* none kept */ }
+}
 
 // Some pages carry notification bubbles: a count, or several with a tone.
 const NAV = [
@@ -691,8 +699,19 @@ const HostWidget = () => {
   );
 };
 
+// A server that goes down 3 seconds after being asked and, unless it was shut
+// down, comes back 6 seconds after that.
+const fakeServer = (kind) => {
+  const t0 = Date.now();
+  return async () => {
+    const t = Date.now() - t0;
+    return t < 3000 || (kind !== 'shutdown' && t > 9000);
+  };
+};
+
 const Dialogs = ({ initial }) => {
   const [open, setOpen] = useState(initial);
+  const [down, setDown] = useState(() => (params.get('restart') ? params.get('restart') : null));
   const [notes, setNotes] = useState(['info', 'success', 'warning', 'error']);
   const proj = `Project ${R.project()}`;
   const file = R.files(1)[0].name;
@@ -724,6 +743,12 @@ const Dialogs = ({ initial }) => {
         <div className="flex flex-wrap gap-2">
           <Button onClick={() => toast('Saved.')}>Save</Button>
           <Button variant="secondary" onClick={() => toast(`${R.int(2, 9)} files synced.`, 'info')}>A neutral note</Button>
+        </div>
+      </Card>
+      <Card title="RestartScreen" subtitle="What the page shows while the server restarts or shuts down" icon="power">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" icon="refresh" onClick={() => setOpen('restart')}>Restart the server</Button>
+          <Button variant="danger" icon="power" onClick={() => setOpen('shutdown')}>Shut down</Button>
         </div>
       </Card>
       <Card title="Notice" subtitle="A message in a tinted box; can be closed" icon="info">
@@ -769,6 +794,26 @@ const Dialogs = ({ initial }) => {
           ))}
         </div>
       </Modal>
+      <Modal
+        isOpen={open === 'restart' || open === 'shutdown'}
+        onClose={() => setOpen(null)}
+        title={open === 'shutdown' ? 'Shut down the server?' : 'Restart the server?'}
+        size="sm"
+        onConfirm={() => { setDown(open); setOpen(null); }}
+        confirmLabel={open === 'shutdown' ? 'Shut down' : 'Restart'}
+        confirmVariant={open === 'shutdown' ? 'danger' : 'primary'}
+        message="Everyone using it is signed out, and running jobs stop."
+      />
+      {/* A pretend server: it stops answering after a few seconds and, on a
+          restart, answers again a few seconds later. Back, the screen goes
+          away with a toast instead of reloading the demo. */}
+      {down && (
+        <RestartScreen
+          kind={down}
+          check={fakeServer(down)}
+          onBack={() => { setDown(null); toast('The server is back.'); }}
+        />
+      )}
       <Modal isOpen={open === 'success'} onClose={() => setOpen(null)} type="success" title="Done" message="The file was deleted." />
     </div>
   );
@@ -837,8 +882,30 @@ const ACCOUNT = {
 
 const PAGES = { overview: Overview, components: Components, forms: Forms, tables: Tables, menus: Menus, dialogs: Dialogs, icons: Icons, about: About };
 
+const LOGO = <span className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-400 to-blue-600 text-on-accent flex items-center justify-center font-bold">1</span>;
+const SMALL_LOGO = <span className="w-7 h-7 rounded-lg bg-linear-to-br from-blue-400 to-blue-600 text-on-accent flex items-center justify-center text-sm font-bold">1</span>;
+
+// A page by id, for a window of the desktop.
+const renderPage = (id) => {
+  const P = PAGES[id];
+  return P ? <P /> : null;
+};
+
 const App = () => {
   const theme = useTheme();
+  const wallpaper = useWallpaper();
+  const layout = useLayout();
+  const openRef = useRef(null);
+  // For the renders: the windows to open on the desktop, the last in front,
+  // and with &snap=1 the first two side by side.
+  useEffect(() => {
+    const ids = (params.get('windows') || '').split(',').filter((x) => PAGES[x]);
+    if (!ids.length) return undefined;
+    const t = setTimeout(() => {
+      ids.forEach((id) => openRef.current?.(id));
+    }, 50);
+    return () => clearTimeout(t);
+  }, []);
   // The demo has right-click menus of its own (on the Menus page), so the
   // browser's is turned off everywhere else, text fields aside.
   useNoBrowserMenu();
@@ -848,6 +915,10 @@ const App = () => {
   useEffect(() => {
     const open = params.get('open');
     const label = open === 'account' || open === 'look' ? 'Account' : open === 'pages' ? 'Open the menu' : null;
+    if (open === 'launcher') {
+      const t = setTimeout(() => document.querySelector('header.oui-bar button[title="Apps"]')?.click(), 150);
+      return () => clearTimeout(t);
+    }
     if (!label) return undefined;
     const t = setTimeout(() => {
       document.querySelector(`button[aria-label="${label}"]`)?.click();
@@ -859,14 +930,18 @@ const App = () => {
   }, []);
   return (
     <AppShell
-      logo={<span className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-400 to-blue-600 text-on-accent flex items-center justify-center font-bold">1</span>}
+      logo={LOGO}
       title="One UI"
       subtitle={`A UI to rule them all · demo seed ${R.SEED}`}
       theme={theme}
+      wallpaper={wallpaper}
+      layout={layout}
+      renderPage={renderPage}
+      desktop={{ logo: SMALL_LOGO, openRef, initialApp: params.has('windows') ? null : page }}
       account={params.get('account') === '0' ? undefined : ACCOUNT}
       nav={NAV}
       active={page}
-      onSelect={setPage}
+      onSelect={(id) => { if (PAGES[id]) setPage(id); }}
     >
       <Page initial={params.get('modal')} />
       {params.get('widget') !== '0' && <HostWidget />}

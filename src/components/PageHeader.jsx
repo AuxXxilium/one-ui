@@ -1,5 +1,7 @@
 import { h } from 'preact';
+import { useContext } from 'preact/hooks';
 import { Icon } from '../icons';
+import { InWindow } from './desktop/context';
 
 // The top of a page: its icon on an accent tile, the way an app names itself
 // by its icon, the title and a line about it - and the page's own buttons on
@@ -23,23 +25,29 @@ import { Icon } from '../icons';
 // them: the row wraps and they take a line of their own, right-aligned,
 // wrapping again inside it on a narrow screen, while the text keeps a readable
 // measure (basis-64) rather than going a word per line.
+//
+// In a window of the desktop the title bar already names the page with its
+// icon, so the tile and the title are left out and the subtitle, the warning
+// and the buttons stay, as one quiet line above the page. Over a wallpaper
+// the header gets a frosted ground (oui-page-header, one-ui.css).
 const PageHeader = ({
   tab, icon = tab?.icon, title = tab?.label, subtitle = tab?.subtitle, warning = tab?.warning,
   onHelp, helpLabel = 'Help', tabs, children,
 }) => {
+  const inWindow = useContext(InWindow);
   const head = (
-    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-      <div className="flex items-center gap-4 min-w-0 flex-1 basis-64">
-        {icon && (
+    <div className={`oui-page-header flex flex-wrap items-center justify-between ${inWindow ? 'gap-x-4 gap-y-2' : 'gap-x-4 gap-y-3'}`}>
+      <div className={`flex items-center gap-4 min-w-0 flex-1 ${inWindow ? 'basis-56' : 'basis-64'}`}>
+        {icon && !inWindow && (
           // text-on-accent: white on the Amber preset is unreadable.
           <span className="w-11 h-11 shrink-0 rounded-2xl bg-linear-to-br from-blue-400 to-blue-600 text-on-accent shadow-md shadow-blue-500/20 flex items-center justify-center">
             <Icon icon={icon} size={22} />
           </span>
         )}
         <div className="min-w-0">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">{title}</h1>
+          {!inWindow && <h1 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">{title}</h1>}
           {subtitle && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{subtitle}</p>
+            <p className={`text-sm text-gray-600 dark:text-gray-400 ${inWindow ? '' : 'mt-0.5'}`}>{subtitle}</p>
           )}
           {warning && (
             <p className="text-sm text-amber-600 dark:text-amber-400 mt-1 flex items-start gap-1.5">
